@@ -38,7 +38,13 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>3.0.0</version>
                 <configuration>
-                    <failOnMissingWebXml>false</failOnMissingWebXml>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <classpathPrefix>lib/</classpathPrefix>
+                            <mainClass>com.nalbam.demo.S3EventProcessorCreateThumbnail</mainClass>
+                        </manifest>
+                    </archive>
                 </configuration>
             </plugin>
         </plugins>
