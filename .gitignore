@@ -1,0 +1,44 @@
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Folder config file
+Desktop.ini
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN
+
+# Windows shortcuts
+*.lnk
+
+# Mac
+.DS_Store
+
+# java
+*.war
+*.ear
+
+# php
+composer.phar
+composer.lock
+
+# build
+target
+build
+
+# gradle
+.gradle
+
+# eclipse
+.settings
+.metadata
+.project
+
+# JetBrains
+.idea
+*.iml
+
+# temp
+*.pid
+*.log
+*.tmp
