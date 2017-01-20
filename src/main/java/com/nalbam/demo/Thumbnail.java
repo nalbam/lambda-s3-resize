@@ -21,7 +21,7 @@ import java.net.URLDecoder;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class S3EventProcessorCreateThumbnail implements RequestHandler<S3Event, String> {
+public class Thumbnail implements RequestHandler<S3Event, String> {
 
     private static final float MAX_WIDTH = 100;
     private static final float MAX_HEIGHT = 100;
