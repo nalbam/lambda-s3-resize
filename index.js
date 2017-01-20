@@ -5,7 +5,7 @@ const im = require('imagemagick')
     , aws = require('aws-sdk')
     , s3 = new aws.S3({ apiVersion: '2006-03-01', region: 'ap-northeast-2' }) // Setup S3 region
     , sizes = [300, 600, 900] // Add more image size to resize
-    , originalImageKeyPrefix = 'images' // Original image folder
+    , originalImageKeyPrefix = 'profile' // Original image folder
     , resizedImageKeyPrefix = 'copy' // Resized image folder
     , debug = true; // Turn off debug flag on production mode
 
@@ -42,19 +42,18 @@ function resize(params) {
             im.resize(p, (err, stdout, stderr) => {
                 if (err) reject(err);
                 else {
-                    const key = `${resizedImageKeyPrefix}/${params.Key.replace(`${originalImageKeyPrefix}/`, '')}.${p.width}`;
+                    const key = resizedImageKeyPrefix+'/'+p.width+'/'+ params.Key;//`${resizedImageKeyPrefix}/${params.Key.replace(`${originalImageKeyPrefix}/`, '')}.${p.width}`;
                     resolve({
                         Bucket: params.Bucket,
                         Key: key,
                         ContentType: params.ContentType,
                         ACL: 'public-read',
-                        Body: ( Buffer.isBuffer(stdout) ) ? stdout : new Buffer(stdout, "binary")
+                        Body: ( Buffer.isBuffer(stdout) ) ? stdout : new Buffer(stdout, 'binary')
                     });
                 }
             });        
         });
     });
-
     console.log('resize() tasks', tasks);
     return Promise.all(tasks);
 }
