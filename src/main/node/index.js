@@ -1,51 +1,56 @@
 'use strict';
 
-let aws = require('aws-sdk');
 let async = require('async');
-let gm = require('gm').subClass({ imageMagick: true });
-let s3 = new aws.S3({ apiVersion: '2006-03-01' });
+let gm = require('gm').subClass({imageMagick: true});
+let watermark = require('image-watermark');
+
+let aws = require('aws-sdk');
+let s3 = new aws.S3({apiVersion: '2006-03-01'});
 
 const supportTypes = ["jpg", "jpeg", "png", "gif"];
 const Thumbnail = {
-  PROFILE: [
-    {alias: 's', type: 'crop', size: 140}
-  ],
-  ARTICLE: [
-    {alias: 's', stamp: true, size: 640},
-    {alias: 'm', stamp: true, size: 960},
-    {alias: 'l', stamp: true, size: 1280}
-  ],
-  MESSAGE: [
-    {alias: 'l', size: 1280}
-  ],
-  sizeFromKey: function(key) {
-    const type = key.split('/')[1];
-    if (type === 'article') {
-      return Thumbnail.ARTICLE;
-    } else if (type === 'profile') {
-      return Thumbnail.PROFILE;
-    } else if (type === 'message') {
-      return Thumbnail.MESSAGE;
+    PROFILE: [
+        {alias: 's', type: 'crop', quality: 90, size: 140}
+    ],
+    ARTICLE: [
+        {alias: 's', stamp: 'watermark_640.png', quality: 80, size: 640},
+        {alias: 'm', stamp: 'watermark_960.png', quality: 80, size: 960},
+        {alias: 'l', stamp: 'watermark_1280.png', quality: 80, size: 1280}
+    ],
+    MESSAGE: [
+        {alias: 'l', quality: 80, size: 1280}
+    ],
+    get: function (key) {
+        const type = key.split('/')[1];
+        if (type === 'article') {
+            return Thumbnail.ARTICLE;
+        } else if (type === 'profile') {
+            return Thumbnail.PROFILE;
+        } else if (type === 'message') {
+            return Thumbnail.MESSAGE;
+        }
+        return null;
     }
-    return null;
-  }
 };
 
 function destKeyFromSrcKey(key, suffix) {
     return key.replace('origin/', `resize/${suffix}/`)
 }
 
-function resizeAndUpload(response, size, srcKey, srcBucket, imageType, callback) {
-    const pixelSize = size["size"];
-    const resizeType = size["type"];
+function resizeAndUpload(response, thumb, srcKey, srcBucket, imageType, callback) {
+    const alias = thumb["alias"];
+    const size = thumb["size"];
+    const type = thumb["type"];
+    const stamp = thumb["stamp"];
+    const quality = thumb["quality"];
 
     function resizeWithAspectRatio(resizeCallback) {
         gm(response.Body)
             .autoOrient()
-            .resize(pixelSize, pixelSize, '>')
+            .resize(size, size, '>')
             .noProfile()
-            .quality(95)
-            .toBuffer(imageType, function(err, buffer) {
+            .quality(quality)
+            .toBuffer(imageType, function (err, buffer) {
                 if (err) {
                     resizeCallback(err);
                 } else {
@@ -57,12 +62,12 @@ function resizeAndUpload(response, size, srcKey, srcBucket, imageType, callback)
     function resizeWithCrop(resizeCallback) {
         gm(response.Body)
             .autoOrient()
-            .resize(pixelSize, pixelSize, '^')
+            .resize(size, size, '^')
             .gravity('Center')
-            .extent(pixelSize, pixelSize)
+            .extent(size, size)
             .noProfile()
-            .quality(95)
-            .toBuffer(imageType, function(err, buffer) {
+            .quality(quality)
+            .toBuffer(imageType, function (err, buffer) {
                 if (err) {
                     resizeCallback(err);
                 } else {
@@ -74,14 +79,14 @@ function resizeAndUpload(response, size, srcKey, srcBucket, imageType, callback)
     async.waterfall(
         [
             function resize(next) {
-                if (resizeType == "crop") {
+                if (type == "crop") {
                     resizeWithCrop(next)
                 } else {
                     resizeWithAspectRatio(next)
                 }
             },
             function upload(contentType, data, next) {
-                const destKey = destKeyFromSrcKey(srcKey, size["alias"]);
+                const destKey = destKeyFromSrcKey(srcKey, alias);
                 s3.putObject(
                     {
                         Bucket: srcBucket,
@@ -95,9 +100,9 @@ function resizeAndUpload(response, size, srcKey, srcBucket, imageType, callback)
             }
         ], (err) => {
             if (err) {
-                callback(new Error(`resize to ${pixelSize} from ${srcKey} : ${err}`));
+                callback(new Error(`resize to ${size} from ${srcKey} : ${err}`));
             } else {
-              callback(null);
+                callback(null);
             }
         }
     )
@@ -110,9 +115,9 @@ exports.handler = (event, context, callback) => {
     const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' '));
 
     // Lambda 타임아웃 에러는 로그에 자세한 정보가 안남아서 S3 파일 이름으로 나중에 에러처리하기위해 에러를 출력하는 코드
-    const timeout = setTimeout(() => {
-        callback(new Error(`[FAIL]:${bucket}/${key}:TIMEOUT`));
-    }, context.getRemainingTimeInMillis() - 500);
+    // const timeout = setTimeout(() => {
+    //     callback(new Error(`[FAIL]:${bucket}/${key}:TIMEOUT`));
+    // }, context.getRemainingTimeInMillis() - 500);
 
     if (!key.startsWith('origin/')) {
         clearTimeout(timeout);
@@ -126,7 +131,9 @@ exports.handler = (event, context, callback) => {
     };
     const keys = key.split('.');
     const imageType = keys.pop().toLowerCase();
-    if (!supportTypes.some((type) => { return type == imageType })) {
+    if (!supportTypes.some((type) => {
+            return type == imageType
+        })) {
         clearTimeout(timeout);
         callback(new Error(`[FAIL]:${bucket}/${key}:Unsupported image type`));
         return;
@@ -138,13 +145,13 @@ exports.handler = (event, context, callback) => {
                 s3.getObject(params, next);
             },
             function transform(response, next) {
-                let sizes = Thumbnail.sizeFromKey(key);
-                if (sizes === null) {
-                  next(new Error(`thumbnail type is undefined(allow articles or profiles), ${key}`));
-                  return;
+                let thumb = Thumbnail.get(key);
+                if (thumb === null) {
+                    next(new Error(`thumbnail type is undefined (allow articles or profiles), ${key}`));
+                    return;
                 }
-                async.eachSeries(sizes, function (size, seriesCallback) {
-                    resizeAndUpload(response, size, key, bucket, imageType, seriesCallback);
+                async.eachSeries(thumb, function (thumb, seriesCallback) {
+                    resizeAndUpload(response, thumb, key, bucket, imageType, seriesCallback);
                 }, next);
             }
         ], (err) => {
