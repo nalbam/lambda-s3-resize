@@ -2,4 +2,4 @@
 
 pushd src/main/node
 
-npm install
+npm install --quiet
