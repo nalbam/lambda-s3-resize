@@ -18,6 +18,9 @@ $RECYCLE.BIN
 *.war
 *.ear
 
+# node
+node_modules
+
 # php
 composer.phar
 composer.lock
