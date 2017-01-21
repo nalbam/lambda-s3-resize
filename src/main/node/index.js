@@ -162,7 +162,7 @@ function watermark(params) {
                 const stamp = Watermark.get(param.Option.size);
                 gm(param.Body)
                     .gravity('NorthEast')
-                    .draw([`image In 10,10 0,0 "${stamp}"`])
+                    .draw([`image Divide 10,10 0,0 "${stamp}"`])
                     .toBuffer(param.Format, function (err, buffer) {
                         if (err) reject(err);
                         else {
