@@ -45,6 +45,7 @@ function getObject(params) {
     console.log('getObject : ', params);
     return new Promise((resolve, reject) => {
         s3.getObject(params, (err, data) => {
+            console.log('getObject : ', data);
             if (err) reject(err);
             else {
                 return resolve({
