@@ -51,7 +51,7 @@ public class Thumbnail implements RequestHandler<S3Event, String> {
             }
 
             // Infer the image type.
-            Matcher matcher = Pattern.compile(".*\\.([^\\.]*)").matcher(srcKey);
+            Matcher matcher = Pattern.compile(".*\\.([^.]*)").matcher(srcKey);
             if (!matcher.matches()) {
                 System.out.println("Unable to infer image type for key " + srcKey);
                 return "";
