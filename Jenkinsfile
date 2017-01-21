@@ -16,6 +16,7 @@ node {
         if (env.BRANCH_NAME == 'master') {
             sh '~/toaster/toast.sh version next'
         }
+        sh './npm-install.sh'
         try {
             if (toast == 1) {
                 mvn 'clean deploy -B -e'
@@ -27,20 +28,11 @@ node {
             notify('Build Failed', 'danger')
             throw e
         }
-    }
-
-    stage('Code Analysis') {
-        mvn 'checkstyle:checkstyle pmd:pmd pmd:cpd findbugs:findbugs -B -e'
-        //step([$class: 'JUnitResultArchiver', testResults: 'target/surefire-reports/*.xml'])
-        step([$class: 'CheckStylePublisher', pattern: 'target/checkstyle-result.xml'])
-        step([$class: 'FindBugsPublisher', pattern: 'target/findbugsXml.xml'])
-        step([$class: 'PmdPublisher', pattern: 'target/pmd.xml'])
-        step([$class: 'DryPublisher', pattern: 'target/cpd.xml'])
-        step([$class: 'TasksPublisher', high: 'FIXME', low: '', normal: 'TODO', pattern: 'src/**/*.java, src/**/*.php'])
+        sh './lambda.sh'
     }
 
     stage('Publish') {
-        archive 'target/*.jar, target/*.war'
+        archive 'target/*.jar, target/*.war, target/*.zip'
         sh '~/toaster/toast.sh version save'
         if (toast == 1) {
             sh '/data/deploy/bin/version-dev.sh'

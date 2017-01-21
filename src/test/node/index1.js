@@ -110,8 +110,11 @@ function resizeAndUpload(response, size, srcKey, srcBucket, imageType, callback)
 }
 
 exports.handler = (event, context, callback) => {
+    console.log('## Received event:', JSON.stringify(event, null, 2));
+
     const bucket = event.Records[0].s3.bucket.name;
     const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' '));
+    
     // Lambda 타임아웃 에러는 로그에 자세한 정보가 안남아서 S3 파일 이름으로 나중에 에러처리하기위해 에러를 출력하는 코드
     const timeout = setTimeout(() => {
         callback(new Error(`[FAIL]:${bucket}/${key}:TIMEOUT`));
@@ -142,7 +145,7 @@ exports.handler = (event, context, callback) => {
             },
             function transform(response, next) {
                 let sizes = ThumbnailSizes.sizeFromKey(key);
-                if (sizes == null) {
+                if (sizes === null) {
                   next(new Error(`thumbnail type is undefined(allow articles or profiles), ${key}`));
                   return;
                 }
