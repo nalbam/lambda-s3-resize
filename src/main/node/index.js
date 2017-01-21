@@ -175,7 +175,7 @@ function watermark(params) {
             }
         });
     });
-    console.log('putObject : ', tasks);
+    console.log('watermark : ', tasks);
     return Promise.all(tasks);
 }
 
