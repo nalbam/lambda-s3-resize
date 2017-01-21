@@ -6,18 +6,18 @@ let gm = require('gm').subClass({imageMagick: true});
 let aws = require('aws-sdk');
 let s3 = new aws.S3({apiVersion: '2006-03-01'});
 
-const supportTypes = ["jpg", "jpeg", "png", "gif"];
+const Extensions = ['jpg', 'jpeg', 'png', 'gif'];
 const Thumbnail = {
+    ARTICLE: [
+        {alias: 's', mark: true, quality: 90, size: 640},
+        {alias: 'm', mark: true, quality: 90, size: 960},
+        {alias: 'l', mark: true, quality: 90, size: 1280}
+    ],
     PROFILE: [
         {alias: 's', type: 'crop', quality: 90, size: 140}
     ],
-    ARTICLE: [
-        {alias: 's', mark: 'watermark_640.png', quality: 80, size: 640},
-        {alias: 'm', mark: 'watermark_960.png', quality: 80, size: 960},
-        {alias: 'l', mark: 'watermark_1280.png', quality: 80, size: 1280}
-    ],
     MESSAGE: [
-        {alias: 'l', quality: 80, size: 1280}
+        {alias: 'l', quality: 90, size: 1280}
     ],
     get: function (key) {
         const type = key.split('/')[1];
@@ -31,17 +31,29 @@ const Thumbnail = {
         return null;
     }
 };
+const Watermark = {
+    get: function (size) {
+        if (size >= 1280) {
+            return 'watermark_1280.png';
+        } else if (size >= 960) {
+            return 'watermark_960.png';
+        } else if (size >= 640) {
+            return 'watermark_640.png';
+        }
+        return null;
+    }
+};
 
 function destKeyFromSrcKey(key, suffix) {
     return key.replace('origin/', `resize/${suffix}/`)
 }
 
 function resizeAndUpload(response, thumb, srcKey, srcBucket, imageType, callback) {
-    const alias = thumb["alias"];
-    const size = thumb["size"];
-    const type = thumb["type"];
-    const mark = thumb["mark"];
-    const quality = thumb["quality"];
+    const alias = thumb['alias'];
+    const size = thumb['size'];
+    const type = thumb['type'];
+    const mark = thumb['mark'];
+    const quality = thumb['quality'];
 
     function resizeWithAspectRatio(cb) {
         gm(response.Body)
@@ -78,7 +90,7 @@ function resizeAndUpload(response, thumb, srcKey, srcBucket, imageType, callback
     async.waterfall(
         [
             function resize(next) {
-                if (type == "crop") {
+                if (type == 'crop') {
                     resizeWithCrop(next)
                 } else {
                     resizeWithAspectRatio(next)
@@ -114,12 +126,12 @@ exports.handler = (event, context, callback) => {
     const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' '));
 
     const timeout = setTimeout(() => {
-        callback(new Error(`[FAIL]:${bucket}/${key}:TIMEOUT`));
+        callback(new Error(`[Fail]:${bucket}/${key}:Timeout`));
     }, context.getRemainingTimeInMillis() - 500);
 
     if (!key.startsWith('origin/')) {
         clearTimeout(timeout);
-        callback(new Error(`[FAIL]:${bucket}/${key}:Unsupported image path`));
+        callback(new Error(`[Fail]:${bucket}/${key}:Unsupported image path.`));
         return;
     }
 
@@ -128,12 +140,12 @@ exports.handler = (event, context, callback) => {
         Key: key
     };
     const keys = key.split('.');
-    const imageType = keys.pop().toLowerCase();
-    if (!supportTypes.some((type) => {
-            return type == imageType
+    const type = keys.pop().toLowerCase();
+    if (!Extensions.some((ext) => {
+            return ext == type;
         })) {
         clearTimeout(timeout);
-        callback(new Error(`[FAIL]:${bucket}/${key}:Unsupported image type`));
+        callback(new Error(`[Fail]:${bucket}/${key}:Unsupported image type.`));
         return;
     }
 
@@ -145,20 +157,20 @@ exports.handler = (event, context, callback) => {
             function transform(response, next) {
                 let thumb = Thumbnail.get(key);
                 if (thumb === null) {
-                    next(new Error(`thumbnail type is undefined (allow articles or profiles), ${key}`));
+                    next(new Error(`[Fail]:${bucket}/${key}:Unsupported thumbnail type.`));
                     return;
                 }
-                async.eachSeries(thumb, function (thumb, seriesCallback) {
-                    resizeAndUpload(response, thumb, key, bucket, imageType, seriesCallback);
+                async.eachSeries(thumb, function (thumb, cb) {
+                    resizeAndUpload(response, thumb, key, bucket, imageType, cb);
                 }, next);
             }
         ], (err) => {
             if (err) {
                 clearTimeout(timeout);
-                callback(new Error(`[FAIL]:${bucket}/${key}:resize task ${err}`));
+                callback(new Error(`[Fail]:${bucket}/${key}:${err}`));
             } else {
                 clearTimeout(timeout);
-                callback(null, "complete resize");
+                callback(null, `[Done]:${bucket}/${key}`);
             }
         }
     );
