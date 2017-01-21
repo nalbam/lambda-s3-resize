@@ -2,7 +2,7 @@
 
 let async = require('async');
 let gm = require('gm').subClass({imageMagick: true});
-let watermark = require('image-watermark');
+let wm = require('watermarker');
 
 let aws = require('aws-sdk');
 let s3 = new aws.S3({apiVersion: '2006-03-01'});
@@ -13,9 +13,9 @@ const Thumbnail = {
         {alias: 's', type: 'crop', quality: 90, size: 140}
     ],
     ARTICLE: [
-        {alias: 's', stamp: 'watermark_640.png', quality: 80, size: 640},
-        {alias: 'm', stamp: 'watermark_960.png', quality: 80, size: 960},
-        {alias: 'l', stamp: 'watermark_1280.png', quality: 80, size: 1280}
+        {alias: 's', mark: 'watermark_640.png', quality: 80, size: 640},
+        {alias: 'm', mark: 'watermark_960.png', quality: 80, size: 960},
+        {alias: 'l', mark: 'watermark_1280.png', quality: 80, size: 1280}
     ],
     MESSAGE: [
         {alias: 'l', quality: 80, size: 1280}
@@ -41,10 +41,10 @@ function resizeAndUpload(response, thumb, srcKey, srcBucket, imageType, callback
     const alias = thumb["alias"];
     const size = thumb["size"];
     const type = thumb["type"];
-    const stamp = thumb["stamp"];
+    const mark = thumb["mark"];
     const quality = thumb["quality"];
 
-    function resizeWithAspectRatio(resizeCallback) {
+    function resizeWithAspectRatio(cb) {
         gm(response.Body)
             .autoOrient()
             .resize(size, size, '>')
@@ -52,14 +52,14 @@ function resizeAndUpload(response, thumb, srcKey, srcBucket, imageType, callback
             .quality(quality)
             .toBuffer(imageType, function (err, buffer) {
                 if (err) {
-                    resizeCallback(err);
+                    cb(err);
                 } else {
-                    resizeCallback(null, response.ContentType, buffer);
+                    cb(null, response.ContentType, buffer);
                 }
             });
     }
 
-    function resizeWithCrop(resizeCallback) {
+    function resizeWithCrop(cb) {
         gm(response.Body)
             .autoOrient()
             .resize(size, size, '^')
@@ -69,9 +69,9 @@ function resizeAndUpload(response, thumb, srcKey, srcBucket, imageType, callback
             .quality(quality)
             .toBuffer(imageType, function (err, buffer) {
                 if (err) {
-                    resizeCallback(err);
+                    cb(err);
                 } else {
-                    resizeCallback(null, response.ContentType, buffer);
+                    cb(null, response.ContentType, buffer);
                 }
             });
     }
