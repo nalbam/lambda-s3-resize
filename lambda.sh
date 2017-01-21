@@ -6,4 +6,4 @@ fi
 
 pushd src/main/node
 
-zip -r ../../../target/lambda index.js node_modules
+zip -q -r ../../../target/lambda index.js node_modules
