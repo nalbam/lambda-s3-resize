@@ -8,12 +8,12 @@ let s3 = new aws.S3({ apiVersion: '2006-03-01' });
 const supportTypes = ["jpg", "jpeg", "png", "gif"];
 const Thumbnail = {
   PROFILE: [
-    {alias: 's', type: 'crop' ,size: 140}
+    {alias: 's', type: 'crop', size: 140}
   ],
   ARTICLE: [
-    {alias: 's', size: 640},
-    {alias: 'm', size: 960},
-    {alias: 'l', size: 1280}
+    {alias: 's', stamp: true, size: 640},
+    {alias: 'm', stamp: true, size: 960},
+    {alias: 'l', stamp: true, size: 1280}
   ],
   MESSAGE: [
     {alias: 'l', size: 1280}
