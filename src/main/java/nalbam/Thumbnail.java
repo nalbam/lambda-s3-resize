@@ -1,4 +1,4 @@
-package com.nalbam.demo;
+package nalbam;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;

@@ -40,7 +40,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>com.nalbam.demo.Thumbnail</mainClass>
+                            <mainClass>nalbam.Thumbnail</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
