@@ -42,10 +42,10 @@ const Watermark = {
 };
 
 function getObject(params) {
-    console.log('getObject : ', params);
+    console.log('getObject params : ', params);
     return new Promise((resolve, reject) => {
         s3.getObject(params, (err, data) => {
-            console.log('getObject : ', data);
+            console.log('getObject : data ', data);
             if (err) reject(err);
             else {
                 return resolve({
@@ -60,7 +60,7 @@ function getObject(params) {
 }
 
 function putObject(params) {
-    console.log('putObject : ', params);
+    console.log('putObject params : ', params);
     let tasks = params.map(param => {
         const dest = getDestKey(param.Key, param.Option.path);
         const p = {
@@ -77,12 +77,12 @@ function putObject(params) {
             });
         });
     });
-    console.log('putObject : ', tasks);
+    console.log('putObject tasks : ', tasks);
     return Promise.all(tasks);
 }
 
 function resizeRatio(params) {
-    console.log('resizeRatio : ', params);
+    console.log('resizeRatio params : ', params);
     return new Promise((resolve, reject) => {
         gm(params.Body)
             .autoOrient()
@@ -104,7 +104,7 @@ function resizeRatio(params) {
 }
 
 function resizeCrop(params) {
-    console.log('resizeCrop : ', params);
+    console.log('resizeCrop params : ', params);
     return new Promise((resolve, reject) => {
         gm(params.Body)
             .autoOrient()
@@ -128,10 +128,11 @@ function resizeCrop(params) {
 }
 
 function resize(params) {
-    console.log('resize : ', params);
+    console.log('resize params : ', params);
     const format = getFormat(params.Key);
     const options = Options.get(params.Key);
     let tasks = options.map(option => {
+        console.log('resize option : ', option);
         const p = {
             Bucket: params.Bucket,
             Key: params.Key,
@@ -146,14 +147,15 @@ function resize(params) {
             return resizeRatio(p);
         }
     });
-    console.log('resize : ', tasks);
+    console.log('resize tasks : ', tasks);
     return Promise.all(tasks);
 }
 
 function watermark(params) {
-    console.log('watermark : ', params);
+    console.log('watermark params : ', params);
     let tasks = params.map(param => {
         return new Promise((resolve, reject) => {
+            console.log('watermark param : ', param);
             if (params.Option.mark) {
                 const stamp = Watermark.get(params.Option.size);
                 gm(params.Body)
@@ -175,7 +177,7 @@ function watermark(params) {
             }
         });
     });
-    console.log('watermark : ', tasks);
+    console.log('watermark tasks : ', tasks);
     return Promise.all(tasks);
 }
 
@@ -189,7 +191,7 @@ function getFormat(key) {
 }
 
 exports.handler = (event, context, callback) => {
-    console.log('## Received event : ', JSON.stringify(event, null, 2));
+    console.log('## handler event : ', JSON.stringify(event, null, 2));
 
     const bucket = event.Records[0].s3.bucket.name;
     const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' '));
