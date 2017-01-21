@@ -126,7 +126,7 @@ exports.handler = (event, context, callback) => {
     const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' '));
 
     const timeout = setTimeout(() => {
-        callback(new Error(`[Fail]:${bucket}/${key}:Timeout`));
+        callback(new Error(`[Fail]:${bucket}/${key}:Timeout.`));
     }, context.getRemainingTimeInMillis() - 500);
 
     if (!key.startsWith('origin/')) {
