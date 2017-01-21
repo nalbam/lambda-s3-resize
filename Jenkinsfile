@@ -16,7 +16,7 @@ node {
         if (env.BRANCH_NAME == 'master') {
             sh '~/toaster/toast.sh version next'
         }
-        sh './npm-install.sh'
+        sh './lambda.sh'
         try {
             if (toast == 1) {
                 mvn 'clean deploy -B -e'
