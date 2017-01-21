@@ -67,7 +67,8 @@ function putObject(params) {
             Bucket: param.Bucket,
             Key: dest,
             ACL: 'public-read',
-            Body: param.Body
+            Body: param.Body,
+            ContentType: param.ContentType
         };
         return new Promise((resolve, reject) => {
             s3.putObject(p, (err, data) => {
