@@ -3,9 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "dependencies": {
-    "gm": ">= 1.0.0",
     "async": ">= 2.0.0",
-    "imagemagick": ">= 0.0.1",
-    "watermarker": ">= 1.0.0"
+    "gm": ">= 1.0.0"
   }
 }

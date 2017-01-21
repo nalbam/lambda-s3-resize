@@ -2,7 +2,6 @@
 
 let async = require('async');
 let gm = require('gm').subClass({imageMagick: true});
-let wm = require('watermarker');
 
 let aws = require('aws-sdk');
 let s3 = new aws.S3({apiVersion: '2006-03-01'});
