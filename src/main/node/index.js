@@ -155,9 +155,9 @@ function watermark(params) {
     let tasks = params.map(param => {
         return new Promise((resolve, reject) => {
             if (params.Option.mark) {
-                const mark = Watermark.get(params.Option.size);
+                const stamp = Watermark.get(params.Option.size);
                 gm(params.Body)
-                    .draw([`image over 0,0 0,0 "${mark}"`])
+                    .draw([`image over 0,0 0,0 "${stamp}"`])
                     .toBuffer(params.Format, function (err, buffer) {
                         if (err) reject(err);
                         else {
