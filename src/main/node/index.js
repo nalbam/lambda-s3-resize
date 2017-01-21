@@ -96,6 +96,7 @@ function resizeRatio(params) {
                         Key: params.Key,
                         ContentType: params.ContentType,
                         Option: params.Option,
+                        Format: params.Format,
                         Body: buffer
                     });
                 }
@@ -120,6 +121,7 @@ function resizeCrop(params) {
                         Key: params.Key,
                         ContentType: params.ContentType,
                         Option: params.Option,
+                        Format: params.Format,
                         Body: buffer
                     });
                 }
@@ -156,18 +158,18 @@ function watermark(params) {
     let tasks = params.map(param => {
         return new Promise((resolve, reject) => {
             console.log('watermark param : ', param);
-            if (params.Option.mark) {
-                const stamp = Watermark.get(params.Option.size);
-                gm(params.Body)
+            if (param.Option.mark) {
+                const stamp = Watermark.get(param.Option.size);
+                gm(param.Body)
                     .draw([`image over 0,0 0,0 "${stamp}"`])
-                    .toBuffer(params.Format, function (err, buffer) {
+                    .toBuffer(param.Format, function (err, buffer) {
                         if (err) reject(err);
                         else {
                             return resolve({
-                                Bucket: params.Bucket,
-                                Key: params.Key,
-                                ContentType: params.ContentType,
-                                Option: params.Option,
+                                Bucket: param.Bucket,
+                                Key: param.Key,
+                                ContentType: param.ContentType,
+                                Option: param.Option,
                                 Body: buffer
                             });
                         }
