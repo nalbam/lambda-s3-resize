@@ -27,6 +27,7 @@ node {
             notify('Build Failed', 'danger')
             throw e
         }
+        sh './lambda.sh'
     }
 
     stage('Code Analysis') {
@@ -40,7 +41,7 @@ node {
     }
 
     stage('Publish') {
-        archive 'target/*.jar, target/*.war'
+        archive 'target/*.jar, target/*.war, target/*.zip'
         sh '~/toaster/toast.sh version save'
         if (toast == 1) {
             sh '/data/deploy/bin/version-dev.sh'
