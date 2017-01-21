@@ -150,6 +150,35 @@ function resize(params) {
     return Promise.all(tasks);
 }
 
+function watermark(params) {
+    console.log('watermark : ', params);
+    let tasks = params.map(param => {
+        return new Promise((resolve, reject) => {
+            if (params.Option.mark) {
+                const mark = Watermark.get(params.Option.size);
+                gm(params.Body)
+                    .draw([`image over 0,0 0,0 "${mark}"`])
+                    .toBuffer(params.Format, function (err, buffer) {
+                        if (err) reject(err);
+                        else {
+                            return resolve({
+                                Bucket: params.Bucket,
+                                Key: params.Key,
+                                ContentType: params.ContentType,
+                                Option: params.Option,
+                                Body: buffer
+                            });
+                        }
+                    });
+            } else {
+                resolve(param);
+            }
+        });
+    });
+    console.log('putObject : ', tasks);
+    return Promise.all(tasks);
+}
+
 function getDestKey(key, suffix) {
     return key.replace('origin/', `resize/${suffix}/`)
 }
@@ -173,6 +202,7 @@ exports.handler = (event, context, callback) => {
     Promise.resolve(params)
         .then(getObject)
         .then(resize)
+        .then(watermark)
         .then(putObject)
         .then(result => {
             console.log(result);
