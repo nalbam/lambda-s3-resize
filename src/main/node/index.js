@@ -66,6 +66,7 @@ function putObject(params) {
         const p = {
             Bucket: param.Bucket,
             Key: dest,
+            ACL: 'public-read',
             Body: param.Body
         };
         return new Promise((resolve, reject) => {
