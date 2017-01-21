@@ -7,7 +7,7 @@ const s3 = new aws.S3({apiVersion: '2006-03-01'});
 const Options = {
     ARTICLE: [
         {path: 's', mark: true, quality: 90, size: 640},
-        {path: 'm', mark: true, quality: 90, size: 960},
+        {path: 'n', mark: true, quality: 90, size: 960},
         {path: 'l', mark: true, quality: 90, size: 1280}
     ],
     PROFILE: [
@@ -29,13 +29,28 @@ const Options = {
     }
 };
 const Watermark = {
+    LARGE: {
+        src: 'stamp/watermark_1280.png',
+        top: 10,
+        left: 1106
+    },
+    NORMAL: {
+        src: 'stamp/watermark_960.png',
+        top: 10,
+        left: 815
+    },
+    SMALL: {
+        src: 'stamp/watermark_640.png',
+        top: 10,
+        left: 540
+    },
     get: function (size) {
         if (size == 1280) {
-            return 'stamp/watermark_1280.png';
+            return Watermark.LARGE;
         } else if (size == 960) {
-            return 'stamp/watermark_960.png';
+            return Watermark.NORMAL;
         } else if (size == 640) {
-            return 'stamp/watermark_640.png';
+            return Watermark.SMALL;
         }
         return null;
     }
@@ -161,7 +176,7 @@ function watermark(params) {
             if (param.Option.mark) {
                 const stamp = Watermark.get(param.Option.size);
                 gm(param.Body)
-                    .draw([`image over 0,0 0,0 "${stamp}"`])
+                    .draw([`image over ${stamp.left},${stamp.top} 0,0 "${stamp.src}"`])
                     .toBuffer(param.Format, function (err, buffer) {
                         if (err) reject(err);
                         else {
