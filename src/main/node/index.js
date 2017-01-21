@@ -1,8 +1,6 @@
 'use strict';
 
-const async = require('async');
 const gm = require('gm').subClass({imageMagick: true});
-
 const aws = require('aws-sdk');
 const s3 = new aws.S3({apiVersion: '2006-03-01'});
 
@@ -32,11 +30,11 @@ const Options = {
 };
 const Watermark = {
     get: function (size) {
-        if (size >= 1280) {
+        if (size == 1280) {
             return 'stamp/watermark_1280.png';
-        } else if (size >= 960) {
+        } else if (size == 960) {
             return 'stamp/watermark_960.png';
-        } else if (size >= 640) {
+        } else if (size == 640) {
             return 'stamp/watermark_640.png';
         }
         return null;
@@ -52,7 +50,6 @@ function getObject(params) {
                 return resolve({
                     Bucket: params.Bucket,
                     Key: params.Key,
-                    Options: params.Options,
                     ContentType: data.ContentType,
                     Body: data.Body
                 });
@@ -129,7 +126,8 @@ function resizeCrop(params) {
 
 function resize(params) {
     console.log('resize : ', params);
-    let tasks = params.Options.map(option => {
+    const options = Options.get(params.Key);
+    let tasks = options.map(option => {
         const p = {
             Bucket: params.Bucket,
             Key: params.Key,
@@ -152,16 +150,14 @@ function getDestKey(key, suffix) {
 }
 
 exports.handler = (event, context, callback) => {
-    console.log('## Received event:', JSON.stringify(event, null, 2));
+    console.log('## Received event : ', JSON.stringify(event, null, 2));
 
     const bucket = event.Records[0].s3.bucket.name;
     const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' '));
-    const options = Options.get(key);
 
     const params = {
         Bucket: bucket,
-        Key: key,
-        Options: options
+        Key: key
     };
 
     Promise.resolve(params)
