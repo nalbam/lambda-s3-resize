@@ -36,12 +36,12 @@ const Watermark = {
     },
     NORMAL: {
         src: 'stamp/watermark_960.png',
-        x: 815, y: 10,
-        w: 135, h: 53
+        x: 10, y: 10,
+        w: 0, h: 0
     },
     SMALL: {
         src: 'stamp/watermark_640.png',
-        x: 540, y: 10,
+        x: 10, y: 10,
         w: 85, h: 34
     },
     get: function (size) {
@@ -176,6 +176,7 @@ function watermark(params) {
             if (param.Option.mark) {
                 const stamp = Watermark.get(param.Option.size);
                 gm(param.Body)
+                    .gravity('NorthEast')
                     .draw([`image over ${stamp.x},${stamp.y} ${stamp.w},${stamp.h} "${stamp.src}"`])
                     .toBuffer(param.Format, function (err, buffer) {
                         if (err) reject(err);
