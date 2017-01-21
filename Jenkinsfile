@@ -16,7 +16,7 @@ node {
         if (env.BRANCH_NAME == 'master') {
             sh '~/toaster/toast.sh version next'
         }
-        sh './lambda.sh'
+        sh './npm-install.sh'
         try {
             if (toast == 1) {
                 mvn 'clean deploy -B -e'
@@ -28,6 +28,7 @@ node {
             notify('Build Failed', 'danger')
             throw e
         }
+        sh './lambda.sh'
     }
 
     stage('Publish') {
