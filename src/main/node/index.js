@@ -31,18 +31,18 @@ const Options = {
 const Watermark = {
     LARGE: {
         src: 'stamp/watermark_1280.png',
-        top: 10,
-        left: 1106
+        x: 1106, y: 10,
+        w: 164, h: 64
     },
     NORMAL: {
         src: 'stamp/watermark_960.png',
-        top: 10,
-        left: 815
+        x: 815, y: 10,
+        w: 135, h: 53
     },
     SMALL: {
         src: 'stamp/watermark_640.png',
-        top: 10,
-        left: 540
+        x: 540, y: 10,
+        w: 85, h: 34
     },
     get: function (size) {
         if (size == 1280) {
@@ -176,7 +176,7 @@ function watermark(params) {
             if (param.Option.mark) {
                 const stamp = Watermark.get(param.Option.size);
                 gm(param.Body)
-                    .draw([`image over ${stamp.left},${stamp.top} 0,0 "${stamp.src}"`])
+                    .draw([`image over ${stamp.x},${stamp.y} ${stamp.w},${stamp.h} "${stamp.src}"`])
                     .toBuffer(param.Format, function (err, buffer) {
                         if (err) reject(err);
                         else {
