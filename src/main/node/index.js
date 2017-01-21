@@ -86,7 +86,7 @@ function resizeRatio(params) {
             .autoOrient()
             .resize(params.Option.size, params.Option.size, '>')
             .quality(params.Option.quality)
-            .toBuffer(imageType, function (err, buffer) {
+            .toBuffer(params.Format, function (err, buffer) {
                 if (err) reject(err);
                 else {
                     return resolve({
@@ -110,7 +110,7 @@ function resizeCrop(params) {
             .gravity('Center')
             .extent(params.Option.size, params.Option.size)
             .quality(params.Option.quality)
-            .toBuffer(imageType, function (err, buffer) {
+            .toBuffer(params.Format, function (err, buffer) {
                 if (err) reject(err);
                 else {
                     return resolve({
@@ -127,6 +127,7 @@ function resizeCrop(params) {
 
 function resize(params) {
     console.log('resize : ', params);
+    const format = getFormat(params.Key);
     const options = Options.get(params.Key);
     let tasks = options.map(option => {
         const p = {
@@ -134,6 +135,7 @@ function resize(params) {
             Key: params.Key,
             ContentType: params.ContentType,
             Option: option,
+            Format: format,
             Body: params.Body
         };
         if (option.crop) {
@@ -148,6 +150,11 @@ function resize(params) {
 
 function getDestKey(key, suffix) {
     return key.replace('origin/', `resize/${suffix}/`)
+}
+
+function getFormat(key) {
+    const keys = key.split('.');
+    return keys.pop().toLowerCase();
 }
 
 exports.handler = (event, context, callback) => {
