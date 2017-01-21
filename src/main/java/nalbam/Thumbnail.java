@@ -1,4 +1,4 @@
-package com.nalbam.demo;
+package nalbam;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
@@ -21,7 +21,7 @@ import java.net.URLDecoder;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class S3EventProcessorCreateThumbnail implements RequestHandler<S3Event, String> {
+public class Thumbnail implements RequestHandler<S3Event, String> {
 
     private static final float MAX_WIDTH = 100;
     private static final float MAX_HEIGHT = 100;
@@ -51,7 +51,7 @@ public class S3EventProcessorCreateThumbnail implements RequestHandler<S3Event, 
             }
 
             // Infer the image type.
-            Matcher matcher = Pattern.compile(".*\\.([^\\.]*)").matcher(srcKey);
+            Matcher matcher = Pattern.compile(".*\\.([^.]*)").matcher(srcKey);
             if (!matcher.matches()) {
                 System.out.println("Unable to infer image type for key " + srcKey);
                 return "";
