@@ -29,28 +29,13 @@ const Options = {
     }
 };
 const Watermark = {
-    LARGE: {
-        src: 'stamp/watermark_1280.png',
-        x: 1106, y: 10,
-        w: 164, h: 64
-    },
-    NORMAL: {
-        src: 'stamp/watermark_960.png',
-        x: 10, y: 10,
-        w: 0, h: 0
-    },
-    SMALL: {
-        src: 'stamp/watermark_640.png',
-        x: 10, y: 10,
-        w: 85, h: 34
-    },
     get: function (size) {
         if (size == 1280) {
-            return Watermark.LARGE;
+            return 'stamp/watermark_1280.png';
         } else if (size == 960) {
-            return Watermark.NORMAL;
+            return 'stamp/watermark_960.png';
         } else if (size == 640) {
-            return Watermark.SMALL;
+            return 'stamp/watermark_640.png';
         }
         return null;
     }
@@ -124,7 +109,7 @@ function resizeCrop(params) {
     return new Promise((resolve, reject) => {
         gm(params.Body)
             .autoOrient()
-            .resize(params.Option.size, params.Option.size, '>')
+            .resize(params.Option.size, params.Option.size, '^')
             .gravity('Center')
             .extent(params.Option.size, params.Option.size)
             .quality(params.Option.quality)
@@ -177,7 +162,7 @@ function watermark(params) {
                 const stamp = Watermark.get(param.Option.size);
                 gm(param.Body)
                     .gravity('NorthEast')
-                    .draw([`image over ${stamp.x},${stamp.y} ${stamp.w},${stamp.h} "${stamp.src}"`])
+                    .draw([`image over 10,10 0,0 "${stamp}"`])
                     .toBuffer(param.Format, function (err, buffer) {
                         if (err) reject(err);
                         else {
