@@ -1,32 +1,31 @@
 'use strict';
 
-let async = require('async');
-let gm = require('gm').subClass({imageMagick: true});
+const async = require('async');
+const gm = require('gm').subClass({imageMagick: true});
 
-let aws = require('aws-sdk');
-let s3 = new aws.S3({apiVersion: '2006-03-01'});
+const aws = require('aws-sdk');
+const s3 = new aws.S3({apiVersion: '2006-03-01'});
 
-const Extensions = ['jpg', 'jpeg', 'png', 'gif'];
-const Thumbnail = {
+const Options = {
     ARTICLE: [
-        {alias: 's', mark: true, quality: 90, size: 640},
-        {alias: 'm', mark: true, quality: 90, size: 960},
-        {alias: 'l', mark: true, quality: 90, size: 1280}
+        {path: 's', mark: true, quality: 90, size: 640},
+        {path: 'm', mark: true, quality: 90, size: 960},
+        {path: 'l', mark: true, quality: 90, size: 1280}
     ],
     PROFILE: [
-        {alias: 's', type: 'crop', quality: 90, size: 140}
+        {path: 's', crop: true, quality: 90, size: 140}
     ],
     MESSAGE: [
-        {alias: 'l', quality: 90, size: 1280}
+        {path: 'l', quality: 90, size: 1280}
     ],
     get: function (key) {
         const type = key.split('/')[1];
         if (type === 'article') {
-            return Thumbnail.ARTICLE;
+            return Options.ARTICLE;
         } else if (type === 'profile') {
-            return Thumbnail.PROFILE;
+            return Options.PROFILE;
         } else if (type === 'message') {
-            return Thumbnail.MESSAGE;
+            return Options.MESSAGE;
         }
         return null;
     }
@@ -34,89 +33,122 @@ const Thumbnail = {
 const Watermark = {
     get: function (size) {
         if (size >= 1280) {
-            return 'watermark_1280.png';
+            return 'stamp/watermark_1280.png';
         } else if (size >= 960) {
-            return 'watermark_960.png';
+            return 'stamp/watermark_960.png';
         } else if (size >= 640) {
-            return 'watermark_640.png';
+            return 'stamp/watermark_640.png';
         }
         return null;
     }
 };
 
-function destKeyFromSrcKey(key, suffix) {
-    return key.replace('origin/', `resize/${suffix}/`)
+function getObject(params) {
+    console.log('getObject : ', params);
+    return new Promise((resolve, reject) => {
+        s3.getObject(params, (err, data) => {
+            if (err) reject(err);
+            else {
+                return resolve({
+                    Bucket: params.Bucket,
+                    Key: params.Key,
+                    Options: params.Options,
+                    ContentType: data.ContentType,
+                    Body: data.Body
+                });
+            }
+        });
+    });
 }
 
-function resizeAndUpload(response, thumb, srcKey, srcBucket, imageType, callback) {
-    const alias = thumb['alias'];
-    const size = thumb['size'];
-    const type = thumb['type'];
-    const mark = thumb['mark'];
-    const quality = thumb['quality'];
+function putObject(params) {
+    console.log('putObject : ', params);
+    let tasks = params.map(param => {
+        const dest = getDestKey(param.Key, param.Option.path);
+        const p = {
+            Bucket: param.Bucket,
+            Key: dest,
+            Body: param.Body
+        };
+        return new Promise((resolve, reject) => {
+            s3.putObject(p, (err, data) => {
+                if (err) reject(err);
+                else resolve(data);
+            });
+        });
+    });
+    console.log('putObject : ', tasks);
+    return Promise.all(tasks);
+}
 
-    function resizeWithAspectRatio(cb) {
-        gm(response.Body)
+function resizeRatio(params) {
+    console.log('resizeRatio : ', params);
+    return new Promise((resolve, reject) => {
+        gm(params.Body)
             .autoOrient()
-            .resize(size, size, '>')
-            .noProfile()
-            .quality(quality)
+            .resize(params.Option.size, params.Option.size, '>')
+            .quality(params.Option.quality)
             .toBuffer(imageType, function (err, buffer) {
-                if (err) {
-                    cb(err);
-                } else {
-                    cb(null, response.ContentType, buffer);
+                if (err) reject(err);
+                else {
+                    return resolve({
+                        Bucket: params.Bucket,
+                        Key: params.Key,
+                        ContentType: params.ContentType,
+                        Option: params.Option,
+                        Body: buffer
+                    });
                 }
             });
-    }
+    });
+}
 
-    function resizeWithCrop(cb) {
-        gm(response.Body)
+function resizeCrop(params) {
+    console.log('resizeCrop : ', params);
+    return new Promise((resolve, reject) => {
+        gm(params.Body)
             .autoOrient()
-            .resize(size, size, '^')
+            .resize(params.Option.size, params.Option.size, '>')
             .gravity('Center')
-            .extent(size, size)
-            .noProfile()
-            .quality(quality)
+            .extent(params.Option.size, params.Option.size)
+            .quality(params.Option.quality)
             .toBuffer(imageType, function (err, buffer) {
-                if (err) {
-                    cb(err);
-                } else {
-                    cb(null, response.ContentType, buffer);
+                if (err) reject(err);
+                else {
+                    return resolve({
+                        Bucket: params.Bucket,
+                        Key: params.Key,
+                        ContentType: params.ContentType,
+                        Option: params.Option,
+                        Body: buffer
+                    });
                 }
             });
-    }
+    });
+}
 
-    async.waterfall(
-        [
-            function resize(next) {
-                if (type == 'crop') {
-                    resizeWithCrop(next)
-                } else {
-                    resizeWithAspectRatio(next)
-                }
-            },
-            function upload(contentType, data, next) {
-                const destKey = destKeyFromSrcKey(srcKey, alias);
-                s3.putObject(
-                    {
-                        Bucket: srcBucket,
-                        Key: destKey,
-                        ACL: 'public-read',
-                        Body: data,
-                        ContentType: contentType
-                    },
-                    next
-                );
-            }
-        ], (err) => {
-            if (err) {
-                callback(new Error(`resize to ${size} from ${srcKey} : ${err}`));
-            } else {
-                callback(null);
-            }
+function resize(params) {
+    console.log('resize : ', params);
+    let tasks = params.Options.map(option => {
+        const p = {
+            Bucket: params.Bucket,
+            Key: params.Key,
+            ContentType: params.ContentType,
+            Option: option,
+            Body: params.Body
+        };
+        if (option.crop) {
+            return resizeCrop(p);
+        } else {
+            return resizeRatio(p);
         }
-    )
+    });
+    console.log('resize : ', tasks);
+    return Promise.all(tasks);
+}
+
+function getDestKey(key, suffix) {
+    return key.replace('origin/', `resize/${suffix}/`)
 }
 
 exports.handler = (event, context, callback) => {
@@ -124,54 +156,24 @@ exports.handler = (event, context, callback) => {
 
     const bucket = event.Records[0].s3.bucket.name;
     const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' '));
-
-    const timeout = setTimeout(() => {
-        callback(new Error(`[Fail]:${bucket}/${key}:Timeout.`));
-    }, context.getRemainingTimeInMillis() - 500);
-
-    if (!key.startsWith('origin/')) {
-        clearTimeout(timeout);
-        callback(new Error(`[Fail]:${bucket}/${key}:Unsupported image path.`));
-        return;
-    }
+    const options = Options.get(key);
 
     const params = {
         Bucket: bucket,
-        Key: key
+        Key: key,
+        Options: options
     };
-    const keys = key.split('.');
-    const type = keys.pop().toLowerCase();
-    if (!Extensions.some((ext) => {
-            return ext == type;
-        })) {
-        clearTimeout(timeout);
-        callback(new Error(`[Fail]:${bucket}/${key}:Unsupported image type.`));
-        return;
-    }
 
-    async.waterfall(
-        [
-            function download(next) {
-                s3.getObject(params, next);
-            },
-            function transform(response, next) {
-                let thumb = Thumbnail.get(key);
-                if (thumb === null) {
-                    next(new Error(`[Fail]:${bucket}/${key}:Unsupported thumbnail type.`));
-                    return;
-                }
-                async.eachSeries(thumb, function (thumb, cb) {
-                    resizeAndUpload(response, thumb, key, bucket, imageType, cb);
-                }, next);
-            }
-        ], (err) => {
-            if (err) {
-                clearTimeout(timeout);
-                callback(new Error(`[Fail]:${bucket}/${key}:${err}`));
-            } else {
-                clearTimeout(timeout);
-                callback(null, `[Done]:${bucket}/${key}`);
-            }
-        }
-    );
+    Promise.resolve(params)
+        .then(getObject)
+        .then(resize)
+        .then(putObject)
+        .then(result => {
+            console.log(result);
+            callback(null, result);
+        })
+        .catch(err => {
+            console.error(err);
+            callback(err);
+        });
 };
