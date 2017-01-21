@@ -1,72 +1,88 @@
 'use strict';
 
-let aws = require('aws-sdk');
 let async = require('async');
-let gm = require('gm').subClass({ imageMagick: true });
-let s3 = new aws.S3({ apiVersion: '2006-03-01' });
+let gm = require('gm').subClass({imageMagick: true});
 
-const supportTypes = ["jpg", "jpeg", "png", "gif"];
+let aws = require('aws-sdk');
+let s3 = new aws.S3({apiVersion: '2006-03-01'});
+
+const Extensions = ['jpg', 'jpeg', 'png', 'gif'];
 const Thumbnail = {
-  PROFILE: [
-    {alias: 's', type: 'crop', size: 140}
-  ],
-  ARTICLE: [
-    {alias: 's', stamp: true, size: 640},
-    {alias: 'm', stamp: true, size: 960},
-    {alias: 'l', stamp: true, size: 1280}
-  ],
-  MESSAGE: [
-    {alias: 'l', size: 1280}
-  ],
-  sizeFromKey: function(key) {
-    const type = key.split('/')[1];
-    if (type === 'article') {
-      return Thumbnail.ARTICLE;
-    } else if (type === 'profile') {
-      return Thumbnail.PROFILE;
-    } else if (type === 'message') {
-      return Thumbnail.MESSAGE;
+    ARTICLE: [
+        {alias: 's', mark: true, quality: 90, size: 640},
+        {alias: 'm', mark: true, quality: 90, size: 960},
+        {alias: 'l', mark: true, quality: 90, size: 1280}
+    ],
+    PROFILE: [
+        {alias: 's', type: 'crop', quality: 90, size: 140}
+    ],
+    MESSAGE: [
+        {alias: 'l', quality: 90, size: 1280}
+    ],
+    get: function (key) {
+        const type = key.split('/')[1];
+        if (type === 'article') {
+            return Thumbnail.ARTICLE;
+        } else if (type === 'profile') {
+            return Thumbnail.PROFILE;
+        } else if (type === 'message') {
+            return Thumbnail.MESSAGE;
+        }
+        return null;
     }
-    return null;
-  }
+};
+const Watermark = {
+    get: function (size) {
+        if (size >= 1280) {
+            return 'watermark_1280.png';
+        } else if (size >= 960) {
+            return 'watermark_960.png';
+        } else if (size >= 640) {
+            return 'watermark_640.png';
+        }
+        return null;
+    }
 };
 
 function destKeyFromSrcKey(key, suffix) {
     return key.replace('origin/', `resize/${suffix}/`)
 }
 
-function resizeAndUpload(response, size, srcKey, srcBucket, imageType, callback) {
-    const pixelSize = size["size"];
-    const resizeType = size["type"];
+function resizeAndUpload(response, thumb, srcKey, srcBucket, imageType, callback) {
+    const alias = thumb['alias'];
+    const size = thumb['size'];
+    const type = thumb['type'];
+    const mark = thumb['mark'];
+    const quality = thumb['quality'];
 
-    function resizeWithAspectRatio(resizeCallback) {
+    function resizeWithAspectRatio(cb) {
         gm(response.Body)
             .autoOrient()
-            .resize(pixelSize, pixelSize, '>')
+            .resize(size, size, '>')
             .noProfile()
-            .quality(95)
-            .toBuffer(imageType, function(err, buffer) {
+            .quality(quality)
+            .toBuffer(imageType, function (err, buffer) {
                 if (err) {
-                    resizeCallback(err);
+                    cb(err);
                 } else {
-                    resizeCallback(null, response.ContentType, buffer);
+                    cb(null, response.ContentType, buffer);
                 }
             });
     }
 
-    function resizeWithCrop(resizeCallback) {
+    function resizeWithCrop(cb) {
         gm(response.Body)
             .autoOrient()
-            .resize(pixelSize, pixelSize, '^')
+            .resize(size, size, '^')
             .gravity('Center')
-            .extent(pixelSize, pixelSize)
+            .extent(size, size)
             .noProfile()
-            .quality(95)
-            .toBuffer(imageType, function(err, buffer) {
+            .quality(quality)
+            .toBuffer(imageType, function (err, buffer) {
                 if (err) {
-                    resizeCallback(err);
+                    cb(err);
                 } else {
-                    resizeCallback(null, response.ContentType, buffer);
+                    cb(null, response.ContentType, buffer);
                 }
             });
     }
@@ -74,14 +90,14 @@ function resizeAndUpload(response, size, srcKey, srcBucket, imageType, callback)
     async.waterfall(
         [
             function resize(next) {
-                if (resizeType == "crop") {
+                if (type == 'crop') {
                     resizeWithCrop(next)
                 } else {
                     resizeWithAspectRatio(next)
                 }
             },
             function upload(contentType, data, next) {
-                const destKey = destKeyFromSrcKey(srcKey, size["alias"]);
+                const destKey = destKeyFromSrcKey(srcKey, alias);
                 s3.putObject(
                     {
                         Bucket: srcBucket,
@@ -95,9 +111,9 @@ function resizeAndUpload(response, size, srcKey, srcBucket, imageType, callback)
             }
         ], (err) => {
             if (err) {
-                callback(new Error(`resize to ${pixelSize} from ${srcKey} : ${err}`));
+                callback(new Error(`resize to ${size} from ${srcKey} : ${err}`));
             } else {
-              callback(null);
+                callback(null);
             }
         }
     )
@@ -109,14 +125,13 @@ exports.handler = (event, context, callback) => {
     const bucket = event.Records[0].s3.bucket.name;
     const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' '));
 
-    // Lambda 타임아웃 에러는 로그에 자세한 정보가 안남아서 S3 파일 이름으로 나중에 에러처리하기위해 에러를 출력하는 코드
     const timeout = setTimeout(() => {
-        callback(new Error(`[FAIL]:${bucket}/${key}:TIMEOUT`));
+        callback(new Error(`[Fail]:${bucket}/${key}:Timeout.`));
     }, context.getRemainingTimeInMillis() - 500);
 
     if (!key.startsWith('origin/')) {
         clearTimeout(timeout);
-        callback(new Error(`[FAIL]:${bucket}/${key}:Unsupported image path`));
+        callback(new Error(`[Fail]:${bucket}/${key}:Unsupported image path.`));
         return;
     }
 
@@ -125,10 +140,12 @@ exports.handler = (event, context, callback) => {
         Key: key
     };
     const keys = key.split('.');
-    const imageType = keys.pop().toLowerCase();
-    if (!supportTypes.some((type) => { return type == imageType })) {
+    const type = keys.pop().toLowerCase();
+    if (!Extensions.some((ext) => {
+            return ext == type;
+        })) {
         clearTimeout(timeout);
-        callback(new Error(`[FAIL]:${bucket}/${key}:Unsupported image type`));
+        callback(new Error(`[Fail]:${bucket}/${key}:Unsupported image type.`));
         return;
     }
 
@@ -138,22 +155,22 @@ exports.handler = (event, context, callback) => {
                 s3.getObject(params, next);
             },
             function transform(response, next) {
-                let sizes = Thumbnail.sizeFromKey(key);
-                if (sizes === null) {
-                  next(new Error(`thumbnail type is undefined(allow articles or profiles), ${key}`));
-                  return;
+                let thumb = Thumbnail.get(key);
+                if (thumb === null) {
+                    next(new Error(`[Fail]:${bucket}/${key}:Unsupported thumbnail type.`));
+                    return;
                 }
-                async.eachSeries(sizes, function (size, seriesCallback) {
-                    resizeAndUpload(response, size, key, bucket, imageType, seriesCallback);
+                async.eachSeries(thumb, function (thumb, cb) {
+                    resizeAndUpload(response, thumb, key, bucket, imageType, cb);
                 }, next);
             }
         ], (err) => {
             if (err) {
                 clearTimeout(timeout);
-                callback(new Error(`[FAIL]:${bucket}/${key}:resize task ${err}`));
+                callback(new Error(`[Fail]:${bucket}/${key}:${err}`));
             } else {
                 clearTimeout(timeout);
-                callback(null, "complete resize");
+                callback(null, `[Done]:${bucket}/${key}`);
             }
         }
     );
