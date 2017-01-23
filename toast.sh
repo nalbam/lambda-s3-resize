@@ -6,18 +6,9 @@ prepare() {
 }
 
 branch() {
-    GIT_BRANCH="`git branch`"
+    BRANCH="`git rev-parse --abbrev-ref HEAD`"
 
-    BRANCH="master"
-
-    while read line
-    do
-        ARR=(${line})
-
-        if [ "${ARR[0]}" == "*" ]; then
-            BRANCH="${ARR[1]}"
-        fi
-    done < ${GIT_BRANCH}
+    echo "branch = ${BRANCH}"
 }
 
 parse() {
@@ -44,27 +35,7 @@ parse() {
     echo "package = [${PACKAGE}]"
 }
 
-version() {
-    if [ "${GROUP_ID}" == "" ] || [ "${ARTIFACT_ID}" == "" ] || [ "${VERSION}" == "" ]; then
-        echo "### toast.sh : empty pom value [${GROUP_ID}][${ARTIFACT_ID}][${VERSION}][${PACKAGE}]"
-        exit 1
-    fi
-
-    if [ "${TOKEN}" == "" ] || [ "${ORG}" == "" ]; then
-        echo "### toast.sh : empty token value [${TOKEN}][${ORG}]"
-        exit 1
-    fi
-
-    if [ "${BRANCH}" == "" ]; then
-        echo "### toast.sh : branch name [${BRANCH}]"
-        exit 1
-    fi
-
-    if [ "${BRANCH}" != "master" ]; then
-        echo "### toast.sh : branch name [${BRANCH}]"
-        exit 1
-    fi
-
+next() {
     URL="${TOAST_URL}/version/latest/${ARTIFACT_ID}"
     RES=`curl -s --data "org=${ORG}&token=${TOKEN}" ${URL}`
     ARR=(${RES})
@@ -94,14 +65,28 @@ version() {
     fi
 }
 
-deploy() {
+version() {
     if [ "${GROUP_ID}" == "" ] || [ "${ARTIFACT_ID}" == "" ] || [ "${VERSION}" == "" ]; then
         echo "### toast.sh : empty pom value [${GROUP_ID}][${ARTIFACT_ID}][${VERSION}][${PACKAGE}]"
         exit 1
     fi
 
-    if [ "${BRANCH}" == "" ]; then
+    if [ "${TOKEN}" == "" ] || [ "${ORG}" == "" ]; then
+        echo "### toast.sh : empty token value [${TOKEN}][${ORG}]"
+        exit 1
+    fi
+
+    if [ "${BRANCH}" == "" ] || [ "${BRANCH}" != "master" ]; then
         echo "### toast.sh : branch name [${BRANCH}]"
+        exit 0
+    fi
+
+    next
+}
+
+deploy() {
+    if [ "${GROUP_ID}" == "" ] || [ "${ARTIFACT_ID}" == "" ] || [ "${VERSION}" == "" ]; then
+        echo "### toast.sh : empty pom value [${GROUP_ID}][${ARTIFACT_ID}][${VERSION}][${PACKAGE}]"
         exit 1
     fi
 
