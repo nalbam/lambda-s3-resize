@@ -5,8 +5,6 @@
 
 properties([buildDiscarder(logRotator(daysToKeepStr: '60', numToKeepStr: '10')), pipelineTriggers([])])
 
-def toast = 2
-
 node {
     stage('Checkout') {
         checkout scm
@@ -16,19 +14,14 @@ node {
         if (env.BRANCH_NAME == 'master') {
             sh '~/toaster/toast.sh version next'
         }
-        sh './npm-install.sh'
         try {
-            if (toast == 1) {
-                mvn 'clean deploy -B -e'
-            } else {
-                mvn 'clean package -B -e'
-            }
+            sh './npm-install.sh'
+            sh './lambda.sh'
             notify('Build Passed', 'good')
         } catch (e) {
             notify('Build Failed', 'danger')
             throw e
         }
-        sh './lambda.sh'
     }
 
     stage('Publish') {
@@ -38,16 +31,6 @@ node {
             sh '/data/deploy/bin/version-dev.sh'
         }
     }
-}
-
-// Run Maven from tool "mvn"
-void mvn(args) {
-    // Get the maven tool.
-    // ** NOTE: This 'M3' maven tool must be configured
-    // **       in the global configuration.
-    def mvnHome = tool 'M3'
-
-    sh "${mvnHome}/bin/mvn ${args}"
 }
 
 def notify(status, color) {
