@@ -194,7 +194,7 @@ function getFormat(key) {
 }
 
 exports.handler = (event, context, callback) => {
-    console.log('## handler event : ', JSON.stringify(event, null, 2));
+    console.log('## resize handler event : ', JSON.stringify(event, null, 2));
 
     const bucket = event.Records[0].s3.bucket.name;
     const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' '));
