@@ -11,9 +11,6 @@ node {
     }
 
     stage('Build') {
-        if (env.BRANCH_NAME == 'master') {
-            sh '~/toaster/toast.sh version next'
-        }
         try {
             sh './npm-install.sh'
             sh './lambda.sh'
@@ -25,11 +22,7 @@ node {
     }
 
     stage('Publish') {
-        archive 'target/*.jar, target/*.war, target/*.zip'
-        sh '~/toaster/toast.sh version save'
-        if (toast == 1) {
-            sh '/data/deploy/bin/version-dev.sh'
-        }
+        archive 'target/*.zip'
     }
 }
 
