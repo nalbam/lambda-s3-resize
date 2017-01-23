@@ -11,14 +11,15 @@ phases:
   pre_build:
     commands:
       - echo Build started on `date`
+      - bash toast.sh version
+      - bash npm-install.sh
   build:
     commands:
-      - ./toast.sh version
-      - ./npm-install.sh
-      - ./lambda.sh
-      - ./toast.sh deploy
+      - echo Nothing to do in the build phase...
   post_build:
     commands:
+      - bash lambda.sh
+      - bash toast.sh deploy
       - echo Build completed on `date`
 artifacts:
   discard-paths: yes
