@@ -1,0 +1,26 @@
+version: 0.1
+
+environment_variables:
+  plaintext:
+    JAVA_HOME: "/usr/lib/jvm/java-8-openjdk-amd64"
+
+phases:
+  install:
+    commands:
+      - echo Nothing to do in the install phase...
+  pre_build:
+    commands:
+      - echo Build started on `date`
+  build:
+    commands:
+      - ./toast.sh version
+      - ./npm-install.sh
+      - ./lambda.sh
+      - ./toast.sh deploy
+  post_build:
+    commands:
+      - echo Build completed on `date`
+artifacts:
+  discard-paths: yes
+  files:
+    - target/*.zip
