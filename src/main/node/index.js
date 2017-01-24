@@ -70,7 +70,9 @@ function getObject(params) {
 function putObject(params) {
     console.log('putObject params : ', params);
     let tasks = params.map(param => {
+        console.log('putObject param : ', param);
         const dest = getDestKey(param.Key, param.Option.path);
+        console.log('putObject dest : ', dest);
         const p = {
             Bucket: param.Bucket,
             Key: dest,
