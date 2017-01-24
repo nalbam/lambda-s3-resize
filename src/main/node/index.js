@@ -14,15 +14,15 @@ if (!debug) {
 
 const Options = {
     ARTICLE: [
-        {path: 's', mark: true, quality: 90, size: 640},
-        {path: 'n', mark: true, quality: 90, size: 960},
-        {path: 'l', mark: true, quality: 90, size: 1280}
+        {path: '640', mark: true, quality: 90, size: 640},
+        {path: '960', mark: true, quality: 90, size: 960},
+        {path: '1280', mark: true, quality: 90, size: 1280}
     ],
     PROFILE: [
-        {path: 's', crop: true, quality: 90, size: 140}
+        {path: null, crop: true, quality: 90, size: 140}
     ],
     MESSAGE: [
-        {path: 'l', quality: 90, size: 1280}
+        {path: '1280', quality: 90, size: 1280}
     ],
     get: function (key) {
         const type = key.split('/')[1];
@@ -193,7 +193,12 @@ function watermark(params) {
 }
 
 function getDestKey(key, suffix) {
-    return key.replace('origin/', `resize/${suffix}/`)
+    if (suffix) {
+        const format = getFormat(key);
+        return key.replace('origin/', 'resize/').replace(new RegExp('.' + format + '$'), '/' + suffix + '.' + format);
+    } else {
+        return key.replace('origin/', 'resize/');
+    }
 }
 
 function getFormat(key) {
