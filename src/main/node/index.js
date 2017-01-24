@@ -1,8 +1,16 @@
 'use strict';
 
-const gm = require('gm').subClass({imageMagick: true});
-const aws = require('aws-sdk');
-const s3 = new aws.S3({apiVersion: '2006-03-01'});
+const aws = require('aws-sdk')
+    , s3 = new aws.S3({apiVersion: '2006-03-01'})
+    , gm = require('gm').subClass({imageMagick: true})
+    , debug = true;
+
+if (!debug) {
+    console.log = () => {
+    };
+    console.error = () => {
+    };
+}
 
 const Options = {
     ARTICLE: [
@@ -194,7 +202,7 @@ function getFormat(key) {
 }
 
 exports.handler = (event, context, callback) => {
-    console.log('## resize handler event : ', JSON.stringify(event, null, 2));
+    console.log('## handler event : ', JSON.stringify(event, null, 2));
 
     const bucket = event.Records[0].s3.bucket.name;
     const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' '));
