@@ -195,17 +195,18 @@ function watermark(params) {
 }
 
 function getDestKey(key, suffix) {
+    let dest = key.replace('origin/', 'resize/');
     if (suffix) {
-        const format = getFormat(key);
-        return key.replace('origin/', 'resize/').replace(new RegExp('.' + format + '$'), '/' + suffix + '.' + format);
-    } else {
-        return key.replace('origin/', 'resize/');
+        const arr = dest.split('/');
+        arr.splice((arr.length - 1), 0, suffix);
+        dest = arr.join('/');
     }
+    return dest;
 }
 
 function getFormat(key) {
-    const keys = key.split('.');
-    return keys.pop().toLowerCase();
+    const arr = key.split('.');
+    return arr.pop().toLowerCase();
 }
 
 exports.handler = (event, context, callback) => {
