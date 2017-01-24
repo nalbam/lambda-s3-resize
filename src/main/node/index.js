@@ -14,15 +14,15 @@ if (!debug) {
 
 const Options = {
     ARTICLE: [
-        {path: 's', mark: true, quality: 90, size: 640},
-        {path: 'n', mark: true, quality: 90, size: 960},
-        {path: 'l', mark: true, quality: 90, size: 1280}
+        {path: '640', mark: true, quality: 90, size: 640},
+        {path: '960', mark: true, quality: 90, size: 960},
+        {path: '1280', mark: true, quality: 90, size: 1280}
     ],
     PROFILE: [
-        {path: 's', crop: true, quality: 90, size: 140}
+        {path: null, crop: true, quality: 90, size: 140}
     ],
     MESSAGE: [
-        {path: 'l', quality: 90, size: 1280}
+        {path: '1280', quality: 90, size: 1280}
     ],
     get: function (key) {
         const type = key.split('/')[1];
@@ -70,7 +70,9 @@ function getObject(params) {
 function putObject(params) {
     console.log('putObject params : ', params);
     let tasks = params.map(param => {
+        console.log('putObject param : ', param);
         const dest = getDestKey(param.Key, param.Option.path);
+        console.log('putObject dest : ', dest);
         const p = {
             Bucket: param.Bucket,
             Key: dest,
@@ -193,12 +195,18 @@ function watermark(params) {
 }
 
 function getDestKey(key, suffix) {
-    return key.replace('origin/', `resize/${suffix}/`)
+    let dest = key.replace('origin/', 'resize/');
+    if (suffix) {
+        const arr = dest.split('/');
+        arr.splice((arr.length - 1), 0, suffix);
+        dest = arr.join('/');
+    }
+    return dest;
 }
 
 function getFormat(key) {
-    const keys = key.split('.');
-    return keys.pop().toLowerCase();
+    const arr = key.split('.');
+    return arr.pop().toLowerCase();
 }
 
 exports.handler = (event, context, callback) => {
