@@ -38,11 +38,11 @@ const Options = {
 };
 const Watermark = {
     get: function (size) {
-        if (size == 1280) {
+        if (size > 1000) {
             return 'stamp/watermark_1280.png';
-        } else if (size == 960) {
+        } else if (size > 900) {
             return 'stamp/watermark_960.png';
-        } else if (size == 640) {
+        } else if (size > 600) {
             return 'stamp/watermark_640.png';
         }
         return null;
@@ -168,26 +168,28 @@ function watermark(params) {
     let tasks = params.map(param => {
         return new Promise((resolve, reject) => {
             console.log('watermark param : ', param);
-            if (param.Option.mark) {
-                const stamp = Watermark.get(param.Option.size);
-                gm(param.Body)
-                    .gravity('NorthEast')
-                    .draw([`image Over 10,10 0,0 "${stamp}"`])
-                    .toBuffer(param.Format, function (err, buffer) {
-                        if (err) reject(err);
-                        else {
-                            return resolve({
-                                Bucket: param.Bucket,
-                                Key: param.Key,
-                                ContentType: param.ContentType,
-                                Option: param.Option,
-                                Body: buffer
-                            });
-                        }
-                    });
-            } else {
+            if (!param.Option.mark) {
                 resolve(param);
             }
+            const stamp = Watermark.get(param.Option.size);
+            if (stamp == null) {
+                resolve(param);
+            }
+            gm(param.Body)
+                .gravity('NorthEast')
+                .draw([`image Over 10,10 0,0 "${stamp}"`])
+                .toBuffer(param.Format, function (err, buffer) {
+                    if (err) reject(err);
+                    else {
+                        return resolve({
+                            Bucket: param.Bucket,
+                            Key: param.Key,
+                            ContentType: param.ContentType,
+                            Option: param.Option,
+                            Body: buffer
+                        });
+                    }
+                });
         });
     });
     console.log('watermark tasks : ', tasks);
@@ -226,11 +228,11 @@ exports.handler = (event, context, callback) => {
         .then(watermark)
         .then(putObject)
         .then(result => {
-            console.log(result);
+            console.log('result : ', result);
             callback(null, result);
         })
-        .catch(err => {
-            console.error(err);
-            callback(err);
+        .catch(error => {
+            console.error('error : ', error);
+            callback(error);
         });
 };
