@@ -22,7 +22,7 @@ const Options = {
         {path: null, crop: true, quality: 90, size: 140}
     ],
     MESSAGE: [
-        {path: '1280', quality: 90, size: 1280}
+        {path: null, quality: 90, size: 1280}
     ],
     get: function (key) {
         const type = key.split('/')[1];
