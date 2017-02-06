@@ -14,15 +14,15 @@ if (!debug) {
 
 const Options = {
     ARTICLE: [
-        {path: '640', mark: true, quality: 80, size: 640},
-        {path: '960', mark: true, quality: 80, size: 960},
-        {path: '1280', mark: true, quality: 80, size: 1280}
+        {path: '640', mark: true, quality: 90, size: 640},
+        {path: '960', mark: true, quality: 90, size: 960},
+        {path: '1280', mark: true, quality: 90, size: 1280}
     ],
     PROFILE: [
-        {path: null, crop: true, quality: 80, size: 140}
+        {path: null, crop: true, quality: 90, size: 140}
     ],
     MESSAGE: [
-        {path: null, quality: 80, size: 1280}
+        {path: null, quality: 90, size: 1280}
     ],
     get: function (key) {
         const type = key.split('/')[1];
