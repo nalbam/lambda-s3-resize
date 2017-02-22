@@ -13,24 +13,33 @@ if (!debug) {
 }
 
 const Options = {
-    ARTICLE: [
-        {path: '640', mark: true, quality: 90, size: 640},
-        {path: '960', mark: true, quality: 90, size: 960},
-        {path: '1280', mark: true, quality: 90, size: 1280}
+    PLACE: [ // 고정 크롭
+        {path: '320', mark: false, quality: 90, width: 320, height: 214},
+        {path: '640', mark: '24,24', quality: 90, width: 640, height: 428},
+        {path: '960', mark: '34,34', quality: 90, width: 960, height: 640},
+        {path: '1280', mark: '44,44', quality: 90, width: 1280, height: 856}
     ],
-    PROFILE: [
-        {path: null, crop: true, quality: 90, size: 140}
+    ARTICLE: [ // 가로 기준
+        {path: '320', quality: 90, width: 320},
+        {path: '640', quality: 90, width: 640},
+        {path: '960', quality: 90, width: 960},
+        {path: '1280', quality: 90, width: 1280}
     ],
-    MESSAGE: [
-        {path: null, quality: 90, size: 1280}
+    PROFILE: [ // 고정 크롭
+        {path: null, quality: 90, width: 140, height: 140}
+    ],
+    MESSAGE: [ // 가로 기준
+        {path: null, quality: 90, width: 1280}
     ],
     get: function (key) {
         const type = key.split('/')[1];
-        if (type === 'article') {
+        if (type == 'place' || type == 'room') {
+            return Options.PLACE;
+        } else if (type == 'article') {
             return Options.ARTICLE;
-        } else if (type === 'profile') {
+        } else if (type == 'profile') {
             return Options.PROFILE;
-        } else if (type === 'message') {
+        } else if (type == 'message') {
             return Options.MESSAGE;
         }
         return null;
@@ -87,20 +96,45 @@ function putObject(params) {
             });
         });
     });
-    console.log('putObject tasks : ', tasks);
+    //console.log('putObject tasks : ', tasks);
     return Promise.all(tasks);
 }
 
-function resizeRatio(params) {
+function resizeMaxArea(params) {
     console.log('resizeRatio params : ', params);
     return new Promise((resolve, reject) => {
         gm(params.Body)
             .autoOrient()
-            .resize(params.Option.size, params.Option.size, '>')
+            .resize(params.Option.width, params.Option.height, '>')
             .quality(params.Option.quality)
             .toBuffer(params.Format, function (err, buffer) {
                 if (err) reject(err);
                 else {
+                    console.log('resizeRatio resolve : ', params);
+                    return resolve({
+                        Bucket: params.Bucket,
+                        Key: params.Key,
+                        ContentType: params.ContentType,
+                        Option: params.Option,
+                        Format: params.Format,
+                        Body: buffer
+                    });
+                }
+            });
+    });
+}
+
+function resizeWidth(params) {
+    console.log('resizeWidth params : ', params);
+    return new Promise((resolve, reject) => {
+        gm(params.Body)
+            .autoOrient()
+            .resize(params.Option.width)
+            .quality(params.Option.quality)
+            .toBuffer(params.Format, function (err, buffer) {
+                if (err) reject(err);
+                else {
+                    console.log('resizeWidth resolve : ', params);
                     return resolve({
                         Bucket: params.Bucket,
                         Key: params.Key,
@@ -119,13 +153,14 @@ function resizeCrop(params) {
     return new Promise((resolve, reject) => {
         gm(params.Body)
             .autoOrient()
-            .resize(params.Option.size, params.Option.size, '^')
+            .resize(params.Option.width, params.Option.height, '^')
             .gravity('Center')
-            .extent(params.Option.size, params.Option.size)
+            .extent(params.Option.width, params.Option.height)
             .quality(params.Option.quality)
             .toBuffer(params.Format, function (err, buffer) {
                 if (err) reject(err);
                 else {
+                    console.log('resizeCrop resolve : ', params);
                     return resolve({
                         Bucket: params.Bucket,
                         Key: params.Key,
@@ -153,13 +188,13 @@ function resize(params) {
             Format: format,
             Body: params.Body
         };
-        if (option.crop) {
+        if (option.height) {
             return resizeCrop(p);
         } else {
-            return resizeRatio(p);
+            return resizeWidth(p);
         }
     });
-    console.log('resize tasks : ', tasks);
+    //console.log('resize tasks : ', tasks);
     return Promise.all(tasks);
 }
 
@@ -171,13 +206,14 @@ function watermark(params) {
             if (!param.Option.mark) {
                 resolve(param);
             }
-            const stamp = Watermark.get(param.Option.size);
-            if (stamp == null) {
+            const stamp = Watermark.get(param.Option.width);
+            if (stamp === null) {
                 resolve(param);
             }
+            const pos = param.Option.mark;
             gm(param.Body)
                 .gravity('NorthEast')
-                .draw([`image Over 10,10 0,0 "${stamp}"`])
+                .draw([`image Over ${pos} 0,0 "${stamp}"`])
                 .toBuffer(param.Format, function (err, buffer) {
                     if (err) reject(err);
                     else {
@@ -192,7 +228,7 @@ function watermark(params) {
                 });
         });
     });
-    console.log('watermark tasks : ', tasks);
+    //console.log('watermark tasks : ', tasks);
     return Promise.all(tasks);
 }
 
