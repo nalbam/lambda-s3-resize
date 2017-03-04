@@ -12,8 +12,8 @@ node {
 
     stage('Build') {
         try {
-            sh './npm-install.sh'
-            sh './lambda.sh'
+            sh './prepare.sh'
+            sh './package.sh'
             notify('Build Passed', 'good')
         } catch (e) {
             notify('Build Failed', 'danger')
