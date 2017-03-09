@@ -11,7 +11,15 @@ install:
 script:
   - ./package.sh
 
-after_success:
+deploy:
+  provider: s3
+  access_key_id: "${env.AWS_ACCESS_KEY}"
+  secret_access_key: "${env.AWS_SECRET_KEY}"
+  bucket: "${env.AWS_BUCKET}"
+  region: ap-northeast-2
+  acl: public_read
+  local_dir: target
+  upload-dir: maven2/com/nalbam/nalbam-resize
 
 notifications:
   slack: nalbam:lZm5eyurcsoKxZgHSnNZGQYY
