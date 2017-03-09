@@ -2,8 +2,7 @@
 language: node_js
 
 node_js:
-  - "iojs"
-  - "6"
+  - 6
 
 install:
   - ./prepare.sh
@@ -13,10 +12,11 @@ script:
 
 deploy:
   provider: s3
-  access_key_id: "${env.AWS_ACCESS_KEY}"
-  secret_access_key: "${env.AWS_SECRET_KEY}"
-  bucket: "${env.AWS_BUCKET}"
   region: ap-northeast-2
+  access_key_id: $AWS_ACCESS_KEY
+  secret_access_key: $AWS_SECRET_KEY
+  bucket: $AWS_BUCKET
+  skip_cleanup: true
   acl: public_read
   local_dir: target
   upload-dir: maven2/com/nalbam/nalbam-resize
