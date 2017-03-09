@@ -1,0 +1,17 @@
+# .travis.yml
+language: node_js
+
+node_js:
+  - "iojs"
+  - "6"
+
+install:
+  - ./prepare.sh
+
+script:
+  - ./package.sh
+
+after_success:
+
+notifications:
+  slack: nalbam:lZm5eyurcsoKxZgHSnNZGQYY
