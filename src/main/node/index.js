@@ -48,11 +48,11 @@ const Options = {
 const Watermark = {
     get: function (size) {
         if (size > 1000) {
-            return 'stamp/watermark_1280.png';
+            return 'stamp/nalbam_1280.png';
         } else if (size > 900) {
-            return 'stamp/watermark_960.png';
+            return 'stamp/nalbam_960.png';
         } else if (size > 600) {
-            return 'stamp/watermark_640.png';
+            return 'stamp/nalbam_640.png';
         }
         return null;
     }
