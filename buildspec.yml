@@ -10,13 +10,13 @@ phases:
   pre_build:
     commands:
       - echo Build started on `date`
-      - bash npm-install.sh
+      - bash prepare.sh
   build:
     commands:
       - echo Nothing to do in the build phase...
   post_build:
     commands:
-      - bash lambda.sh
+      - bash package.sh
       - echo Build completed on `date`
 artifacts:
   discard-paths: yes
