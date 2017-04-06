@@ -31,16 +31,21 @@ const Options = {
     MESSAGE: [ // 가로 기준
         {path: null, quality: 90, width: 1280}
     ],
+    BANNER: [ // 가로 기준
+        {path: null, quality: 90, width: 1280}
+    ],
     get: function (key) {
         const type = key.split('/')[1];
-        if (type == 'place' || type == 'room') {
+        if (type === 'place' || type === 'room') {
             return Options.PLACE;
-        } else if (type == 'article') {
+        } else if (type === 'article') {
             return Options.ARTICLE;
-        } else if (type == 'profile') {
+        } else if (type === 'profile') {
             return Options.PROFILE;
-        } else if (type == 'message') {
+        } else if (type === 'message') {
             return Options.MESSAGE;
+        } else if (type === 'banner') {
+            return Options.BANNER;
         }
         return null;
     }
@@ -65,7 +70,7 @@ function getObject(params) {
             console.log('getObject : data ', data);
             if (err) reject(err);
             else {
-                return resolve({
+                resolve({
                     Bucket: params.Bucket,
                     Key: params.Key,
                     ContentType: data.ContentType,
@@ -100,42 +105,18 @@ function putObject(params) {
     return Promise.all(tasks);
 }
 
-function resizeMaxArea(params) {
-    console.log('resizeRatio params : ', params);
-    return new Promise((resolve, reject) => {
-        gm(params.Body)
-            .autoOrient()
-            .resize(params.Option.width, params.Option.height, '>')
-            .quality(params.Option.quality)
-            .toBuffer(params.Format, function (err, buffer) {
-                if (err) reject(err);
-                else {
-                    console.log('resizeRatio resolve : ', params);
-                    return resolve({
-                        Bucket: params.Bucket,
-                        Key: params.Key,
-                        ContentType: params.ContentType,
-                        Option: params.Option,
-                        Format: params.Format,
-                        Body: buffer
-                    });
-                }
-            });
-    });
-}
-
 function resizeWidth(params) {
     console.log('resizeWidth params : ', params);
     return new Promise((resolve, reject) => {
         gm(params.Body)
             .autoOrient()
-            .resize(params.Option.width)
+            .resize(params.Option.width, null, '>')
             .quality(params.Option.quality)
             .toBuffer(params.Format, function (err, buffer) {
                 if (err) reject(err);
                 else {
                     console.log('resizeWidth resolve : ', params);
-                    return resolve({
+                    resolve({
                         Bucket: params.Bucket,
                         Key: params.Key,
                         ContentType: params.ContentType,
@@ -161,7 +142,7 @@ function resizeCrop(params) {
                 if (err) reject(err);
                 else {
                     console.log('resizeCrop resolve : ', params);
-                    return resolve({
+                    resolve({
                         Bucket: params.Bucket,
                         Key: params.Key,
                         ContentType: params.ContentType,
@@ -217,7 +198,7 @@ function watermark(params) {
                 .toBuffer(param.Format, function (err, buffer) {
                     if (err) reject(err);
                     else {
-                        return resolve({
+                        resolve({
                             Bucket: param.Bucket,
                             Key: param.Key,
                             ContentType: param.ContentType,
