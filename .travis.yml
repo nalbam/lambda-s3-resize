@@ -22,4 +22,4 @@ deploy:
   upload-dir: maven2/com/nalbam/nalbam-resize
 
 notifications:
-  slack: nalbam:$SLACK_KEY
+  slack: $SLACK_KEY
