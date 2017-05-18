@@ -30,7 +30,5 @@ node {
 }
 
 def notify(status, color) {
-    if (color == 'danger' || env.BRANCH_NAME == 'master') {
-        slackSend(color: color, message: "${status}: ${env.JOB_NAME} <${env.BUILD_URL}|#${env.BUILD_NUMBER}>")
-    }
+    slackSend(color: color, message: "${status}: ${env.JOB_NAME} <${env.BUILD_URL}|#${env.BUILD_NUMBER}>")
 }
