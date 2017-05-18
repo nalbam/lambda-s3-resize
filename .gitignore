@@ -21,21 +21,9 @@ $RECYCLE.BIN
 # node
 node_modules
 
-# php
-composer.phar
-composer.lock
-
 # build
 target
 build
-
-# gradle
-.gradle
-
-# eclipse
-.settings
-.metadata
-.project
 
 # JetBrains
 .idea
