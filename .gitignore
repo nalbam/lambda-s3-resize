@@ -6,7 +6,7 @@ ehthumbs.db
 Desktop.ini
 
 # Recycle Bin used on file shares
-$RECYCLE.BIN
+$RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
@@ -14,22 +14,30 @@ $RECYCLE.BIN
 # Mac
 .DS_Store
 
-# java
+# Java
+*.class
+*.jar
 *.war
 *.ear
 
-# node
-node_modules
+# PHP
+composer.phar
+composer.lock
 
-# build
-target
-build
+# Maven
+target/
+build/
 
 # JetBrains
-.idea
+.idea/
 *.iml
 
-# temp
+# Eclipse
+.settings/
+.metadata/
+.project
+
+# Temp
 *.pid
 *.log
 *.tmp
