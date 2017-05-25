@@ -15,7 +15,6 @@ node {
 
     stage('Build') {
         try {
-            sh './prepare.sh'
             sh './package.sh'
             notify('Build Passed', 'good')
         } catch (e) {
