@@ -1,0 +1,29 @@
+machine:
+  timezone:
+    Asia/Seoul
+  node:
+    version: 0.10.22
+
+dependencies:
+  pre:
+    - curl -s toast.sh/install | bash
+  post:
+    - ~/toaster/toast.sh config circle local nalbam $TOAST_TOKEN
+
+compile:
+  override:
+    - ./package.sh
+
+test:
+  override:
+    - ls -al target
+
+deployment:
+  development:
+    branch: /^(?!master$).*$/
+    commands:
+      - ~/toaster/toast.sh build lambda
+  production:
+    branch: master
+    commands:
+      - ~/toaster/toast.sh build lambda
