@@ -1,18 +1,18 @@
 machine:
-  timezone:
-    Asia/Seoul
+  timezone: Asia/Seoul
   node:
     version: 0.10.22
 
 dependencies:
   pre:
-    - curl -s toast.sh/install | bash
+    - curl -s toast.sh/install-v3 | bash
   post:
-    - ~/toaster/toast.sh config circle local nalbam $TOAST_TOKEN
+    - ~/toaster/toast.sh c REGION ap-northeast-2
+    - ~/toaster/toast.sh c BUCKET repo.nalbam.com
 
 compile:
   override:
-    - ./package.sh
+    - ~/toaster/toast.sh g node
 
 test:
   override:
@@ -22,8 +22,8 @@ deployment:
   development:
     branch: /^(?!master$).*$/
     commands:
-      - ~/toaster/toast.sh build lambda
+      - ~/toaster/toast.sh p bk
   production:
     branch: master
     commands:
-      - ~/toaster/toast.sh build lambda
+      - ~/toaster/toast.sh p bk
