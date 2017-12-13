@@ -12,42 +12,29 @@ if (!debug) {
     };
 }
 
+const QUALITY = 95;
+
 const Options = {
-    PLACE: [ // 고정 크롭
-        {path: '320', mark: false, quality: 90, width: 320, height: 214},
-        {path: '640', mark: '24,24', quality: 90, width: 640, height: 428},
-        {path: '960', mark: '34,34', quality: 90, width: 960, height: 640},
-        {path: '1280', mark: '44,44', quality: 90, width: 1280, height: 856}
-    ],
     ARTICLE: [ // 가로 기준
-        {path: '320', quality: 90, width: 320},
-        {path: '640', quality: 90, width: 640},
-        {path: '960', quality: 90, width: 960},
-        {path: '1280', quality: 90, width: 1280}
+        {path: '1280', width: 1280, quality: QUALITY},
+        {path: '640', width: 640, quality: QUALITY},
+        {path: null} // width 또는 height 가 없으면 원본
     ],
     PROFILE: [ // 고정 크롭
-        {path: null, quality: 90, width: 140, height: 140}
+        {path: null, width: 140, height: 140, quality: QUALITY}
     ],
-    MESSAGE: [ // 가로 기준
-        {path: null, quality: 90, width: 1280}
-    ],
-    BANNER: [ // 가로 기준
-        {path: null, quality: 90, width: 1280}
+    ORIGINAL: [
+        {path: null} // 원본
     ],
     get: function (key) {
         const type = key.split('/')[1];
-        if (type === 'place' || type === 'room') {
-            return Options.PLACE;
-        } else if (type === 'article') {
+        if (type === 'article') {
             return Options.ARTICLE;
         } else if (type === 'profile') {
             return Options.PROFILE;
-        } else if (type === 'message') {
-            return Options.MESSAGE;
-        } else if (type === 'banner') {
-            return Options.BANNER;
+        } else {
+            return Options.ORIGINAL;
         }
-        return null;
     }
 };
 const Watermark = {
@@ -171,8 +158,10 @@ function resize(params) {
         };
         if (option.height) {
             return resizeCrop(p);
-        } else {
+        } else if (option.width) {
             return resizeWidth(p);
+        } else {
+            return p;
         }
     });
     //console.log('resize tasks : ', tasks);
