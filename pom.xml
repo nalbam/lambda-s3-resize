@@ -4,11 +4,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.nalbam</groupId>
-    <artifactId>nalbam-lambda-resize</artifactId>
+    <artifactId>lambda-resize</artifactId>
     <version>0.0.0</version>
     <packaging>zip</packaging>
 
-    <name>nalbam-lambda-resize</name>
+    <name>lambda-resize</name>
     <url>http://resize.nalbam.com</url>
 
 </project>

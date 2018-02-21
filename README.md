@@ -1,1 +1,1 @@
-# nalbam-lambda-resize
+# lambda-resize
