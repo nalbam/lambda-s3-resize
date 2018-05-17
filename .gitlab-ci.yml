@@ -5,26 +5,22 @@ stages:
   - release
   - deploy
 
-before_script:
-  - curl -s toast.sh/install-v3 | bash
+variables:
+  FUNCTION: resize-dev
+  S3_BUCKET: repo.nalbam.com
+  S3_KEY: $CI_PROJECT_NAME/$CI_COMMIT_REF_NAME/lambda.zip
 
 build:
   stage: build
   image: nalbam/builder:node
   script:
-    - ~/toaster/toast.sh build node
-  artifacts:
-    paths:
-      - target/
+    - cd src && npm install && zip -r ../lambda.zip *
 
 release:
   stage: release
   image: nalbam/builder:python
   script:
-    - ~/toaster/toast.sh release bucket
-  artifacts:
-    paths:
-      - target/
+    - aws s3 cp lambda.zip $S3_KEY
 
 deploy:
   stage: deploy
@@ -32,7 +28,7 @@ deploy:
   only:
     - master
   script:
-    - ~/toaster/toast.sh deploy lambda resize-dev
+    - aws lambda update-function-code --function-name $FUNCTION --s3-bucket $S3_BUCKET --s3-key $S3_KEY
 
 after_script:
-  - ls -alh target
+  - ls -alh
