@@ -2,6 +2,7 @@
 
 stages:
   - build
+  - release
   - deploy
 
 before_script:
@@ -17,12 +18,22 @@ build:
     paths:
       - target/
 
+release:
+  stage: release
+  image: nalbam/builder:awscli
+  script:
+    - ~/toaster/toast.sh release bucket
+  artifacts:
+    paths:
+      - target/
+
 deploy:
   stage: deploy
-  image: python:latest
+  image: nalbam/builder:awscli
+  only:
+    - master
   script:
-    - pip install awscli
-    - ~/toaster/toast.sh deploy lambda resize
+    - ~/toaster/toast.sh deploy lambda resize-dev
 
 after_script:
   - ls -alh target
