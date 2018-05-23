@@ -22,6 +22,7 @@ $RECYCLE.BIN/
 
 # Nodejs
 package-lock.json
+node_modules/
 
 # PHP
 composer.phar
