@@ -20,6 +20,9 @@ $RECYCLE.BIN/
 *.war
 *.ear
 
+# Nodejs
+package-lock.json
+
 # PHP
 composer.phar
 composer.lock
