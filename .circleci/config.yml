@@ -1,0 +1,17 @@
+#
+# CircleCI 2.0
+#
+version: 2
+jobs:
+  build:
+    docker:
+      - image: nalbam/builder:python
+    environment:
+      BUCKET: "repo.nalbam.com"
+      S3_KEY: "resize-dev"
+    steps:
+      - checkout
+      - run: mkdir -p target
+      - run: cd src && npm install && zip -r ../target/lambda.zip *
+      - run: aws s3 cp target/lambda.zip s3://${BUCKET}/lambda/${S3_KEY}.zip
+      - run: aws lambda update-function-code --function-name ${S3_KEY} --s3-bucket ${BUCKET} --s3-key lambda/${S3_KEY}.zip
