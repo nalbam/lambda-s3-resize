@@ -7,7 +7,7 @@ jobs:
     docker:
       - image: nalbam/builder:python
     environment:
-      BUCKET: "repo.nalbam.com"
+      BUCKET: "repo.saymoji.com"
       S3_KEY: "resize-dev"
     steps:
       - checkout
