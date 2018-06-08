@@ -5,13 +5,37 @@ version: 2
 jobs:
   build:
     docker:
+      - image: nalbam/builder:node
+    working_directory: /work
+    steps:
+      - checkout
+      - run: mkdir -p target
+      - run: cd src && npm install && zip -r ../target/lambda.zip *
+      - persist_to_workspace:
+          root: target
+          paths:
+            - lambda.zip
+      - store_artifacts:
+          path: /work/target/lambda.zip
+  deploy:
+    docker:
       - image: nalbam/builder:python
     environment:
       BUCKET: "repo.saymoji.com"
       S3_KEY: "resize-dev"
     steps:
+      - attach_workspace:
+          at: /work/target
       - checkout
-      - run: mkdir -p target
-      - run: cd src && npm install && zip -r ../target/lambda.zip *
-      - run: aws s3 cp target/lambda.zip s3://${BUCKET}/lambda/${S3_KEY}.zip
+      - run: aws configure set default.region ap-northeast-2
+      - run: aws s3 cp /work/target/lambda.zip s3://${BUCKET}/lambda/${S3_KEY}.zip
       - run: aws lambda update-function-code --function-name ${S3_KEY} --s3-bucket ${BUCKET} --s3-key lambda/${S3_KEY}.zip
+
+workflows:
+  version: 2
+  lambda:
+    jobs:
+      - build
+      - deploy:
+          requires:
+            - build
