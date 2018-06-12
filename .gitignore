@@ -24,9 +24,12 @@ $RECYCLE.BIN/
 package-lock.json
 node_modules/
 
-# PHP
-composer.phar
-composer.lock
+# Terraform
+.terraform/
+.terraform.tfstate.lock.info
+terraform.tfstate.backup
+terraform.tfstate
+terraform.tfplan
 
 # Maven
 target/

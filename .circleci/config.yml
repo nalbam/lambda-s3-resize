@@ -6,7 +6,6 @@ jobs:
   build:
     docker:
       - image: nalbam/builder:node
-    working_directory: /work
     steps:
       - checkout
       - run: mkdir -p target
@@ -16,20 +15,16 @@ jobs:
           paths:
             - lambda.zip
       - store_artifacts:
-          path: /work/target/lambda.zip
+          path: target/lambda.zip
   deploy:
     docker:
-      - image: nalbam/builder:python
-    environment:
-      BUCKET: "repo.saymoji.com"
-      S3_KEY: "resize-dev"
+      - image: hashicorp/terraform:light
     steps:
-      - attach_workspace:
-          at: /work/target
       - checkout
-      - run: aws configure set default.region ap-northeast-2
-      - run: aws s3 cp /work/target/lambda.zip s3://${BUCKET}/lambda/${S3_KEY}.zip
-      - run: aws lambda update-function-code --function-name ${S3_KEY} --s3-bucket ${BUCKET} --s3-key lambda/${S3_KEY}.zip
+      - attach_workspace:
+          at: target
+      - run: terraform init
+      - run: terraform apply -auto-approve -var="version=1.0.${CIRCLE_BUILD_NUM}"
 
 workflows:
   version: 2
