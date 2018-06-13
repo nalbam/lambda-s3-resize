@@ -22,6 +22,6 @@ variable version {
   default = "1.0.0"
 }
 
-variable SOURCE_BUCKET_NAME {
+variable SOURCE_BUCKET {
   default = "upload.saymoji.com"
 }
