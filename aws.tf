@@ -7,7 +7,7 @@ provider "aws" {
 terraform {
   backend "s3" {
     region = "ap-northeast-2"
-    bucket = "terraform-me01-seoul"
+    bucket = "terraform-nalbam-seoul"
     key = "demo-resize.tfstate"
   }
 }
