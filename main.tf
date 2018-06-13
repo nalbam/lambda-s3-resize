@@ -15,7 +15,7 @@ module "demo-resize" {
   s3_source    = "target/lambda.zip"
   s3_key       = "lambda/${var.name}/${var.name}-${var.version}.zip"
 
-  source_bucket = "${var.SOURCE_BUCKET_NAME}"
+  source_bucket = "${var.SOURCE_BUCKET}"
   filter_prefix = "origin/"
   filter_suffix = ""
 
