@@ -6,14 +6,14 @@ module "demo-resize" {
 
   name        = "${var.name}"
   stage       = "${var.stage}"
-  description = "s3 > resize > s3"
+  description = "s3 > ${var.name} > s3"
   runtime     = "nodejs8.10"
   handler     = "index.handler"
   memory_size = 512
   timeout     = 5
-  s3_bucket    = "${var.s3_bucket}"
-  s3_source    = "target/lambda.zip"
-  s3_key       = "lambda/${var.name}/${var.name}-${var.version}.zip"
+  s3_bucket   = "${var.s3_bucket}"
+  s3_source   = "target/lambda.zip"
+  s3_key      = "lambda/${var.name}/${var.name}-${var.version}.zip"
 
   source_bucket = "${var.SOURCE_BUCKET}"
   filter_prefix = "origin/"
