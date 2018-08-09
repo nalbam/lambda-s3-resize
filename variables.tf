@@ -3,7 +3,7 @@ variable region {
 }
 
 variable name {
-  default = "demo-resize"
+  default = "resize"
 }
 
 variable stage {
