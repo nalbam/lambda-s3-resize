@@ -5,24 +5,18 @@ version: 2
 jobs:
   build:
     docker:
-      - image: nalbam/builder:node
+      - image: circleci/node:10
+    working_directory: ~/workspace
     steps:
       - checkout
       - run: mkdir -p target
-      - run: cd src && npm install && zip -r ../target/lambda.zip *
-      - persist_to_workspace:
-          root: target
-          paths:
-            - lambda.zip
-      - store_artifacts:
-          path: target/lambda.zip
+      - run: cd src && npm run build
   deploy:
     docker:
-      - image: hashicorp/terraform:light
+      - image: nalbam/builder
+    working_directory: ~/workspace
     steps:
-      - checkout
-      - attach_workspace:
-          at: target
+      - run: cd src && zip -r ../target/lambda.zip *
       - run: terraform init
       - run: terraform apply -auto-approve -var="version=1.0.${CIRCLE_BUILD_NUM}"
 
