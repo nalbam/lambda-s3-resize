@@ -1,5 +1,17 @@
 # Terraform Main
 
+provider "aws" {
+  region = "${var.region}"
+}
+
+terraform {
+  backend "s3" {
+    region = "ap-northeast-2"
+    bucket = "terraform-nalbam-seoul"
+    key = "demo-resize.tfstate"
+  }
+}
+
 module "demo-resize" {
   source = "git::https://github.com/nalbam/terraform-aws-lambda-s3.git"
   region = "${var.region}"
