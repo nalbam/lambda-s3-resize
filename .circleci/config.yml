@@ -6,12 +6,22 @@ jobs:
   build:
     docker:
       - image: circleci/node:10
-      - image: nalbam/builder
     working_directory: ~/workspace
     steps:
       - checkout
       - run: mkdir -p target
       - run: cd src && npm run build
+      - save_cache:
+          key: v1-repo-{{ .Environment.CIRCLE_SHA1 }}
+          paths:
+            - ~/workspace
+  deploy:
+    docker:
+      - image: nalbam/builder
+    working_directory: ~/workspace
+    steps:
+      - restore_cache:
+          key: v1-repo-{{ .Environment.CIRCLE_SHA1 }}
       - run: pwd && ls -al
       - run: cd src && zip -r ../target/lambda.zip *
       - run: terraform init
@@ -22,3 +32,6 @@ workflows:
   lambda:
     jobs:
       - build
+      - deploy:
+          requires:
+            - build
