@@ -16,6 +16,7 @@ jobs:
       - image: nalbam/builder
     working_directory: ~/workspace
     steps:
+      - run: pwd && ls -al
       - run: cd src && zip -r ../target/lambda.zip *
       - run: terraform init
       - run: terraform apply -auto-approve -var="version=1.0.${CIRCLE_BUILD_NUM}"
