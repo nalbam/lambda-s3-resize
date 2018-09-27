@@ -10,6 +10,7 @@ terraform {
     bucket = "terraform-nalbam-seoul"
     key = "demo-resize.tfstate"
   }
+  required_version = "> 0.11.0"
 }
 
 module "demo-resize" {
