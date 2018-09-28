@@ -8,18 +8,18 @@ terraform {
   backend "s3" {
     region = "ap-northeast-2"
     bucket = "terraform-nalbam-seoul"
-    key = "demo-resize.tfstate"
+    key = "dev-s3-resize.tfstate"
   }
   required_version = "> 0.11.0"
 }
 
-module "demo-resize" {
+module "dev-s3-resize" {
   source = "git::https://github.com/nalbam/terraform-aws-lambda-s3.git"
   region = "${var.region}"
 
   name        = "${var.name}"
   stage       = "${var.stage}"
-  description = "s3 > ${var.name} > s3"
+  description = "s3 > lambda > s3"
   runtime     = "nodejs8.10"
   handler     = "index.handler"
   memory_size = 512

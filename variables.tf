@@ -3,7 +3,7 @@ variable region {
 }
 
 variable name {
-  default = "resize"
+  default = "s3-resize"
 }
 
 variable stage {

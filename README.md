@@ -1,1 +1,1 @@
-# lambda-resize
+# lambda-s3-resize
