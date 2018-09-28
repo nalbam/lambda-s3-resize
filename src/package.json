@@ -1,5 +1,5 @@
 {
-  "name": "lambda-resize",
+  "name": "lambda-s3-resize",
   "version": "1.0.0",
   "private": true,
   "scripts": {
