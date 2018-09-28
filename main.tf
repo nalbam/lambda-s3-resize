@@ -19,7 +19,7 @@ module "dev-s3-resize" {
 
   name        = "${var.name}"
   stage       = "${var.stage}"
-  description = "s3 > lambda > s3"
+  description = "s3 > lambda > resize"
   runtime     = "nodejs8.10"
   handler     = "index.handler"
   memory_size = 512
