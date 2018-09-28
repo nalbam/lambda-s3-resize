@@ -8,8 +8,15 @@ jobs:
       - image: circleci/node:10
     steps:
       - checkout
-      - run: mkdir -p target
-      - run: cd src && npm install && zip -r ../target/lambda.zip *
+      - run:
+          name: Build
+          command: |
+            mkdir -p target
+            cd src && npm install
+      - run:
+          name: Package
+          command: |
+            cd src && zip -r ../target/lambda.zip *
       - persist_to_workspace:
           root: target
           paths:
@@ -28,7 +35,7 @@ jobs:
 
 workflows:
   version: 2
-  lambda:
+  apply:
     jobs:
       - build
       - deploy:
