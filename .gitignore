@@ -14,12 +14,6 @@ $RECYCLE.BIN/
 # Mac
 .DS_Store
 
-# Java
-*.class
-*.jar
-*.war
-*.ear
-
 # Nodejs
 package-lock.json
 node_modules/
