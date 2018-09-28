@@ -9,14 +9,9 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Build
-          command: |
-            mkdir -p target
-            cd src && npm install
-      - run:
           name: Package
           command: |
-            cd src && zip -r ../target/lambda.zip *
+            ./package.sh
       - persist_to_workspace:
           root: target
           paths:
