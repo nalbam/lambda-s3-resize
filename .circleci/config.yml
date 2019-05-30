@@ -13,26 +13,42 @@ jobs:
           command: |
             ./package.sh
       - persist_to_workspace:
-          root: target
+          root: .
           paths:
-            - lambda.zip
+            - .
       - store_artifacts:
           path: target/lambda.zip
+  test:
+    docker:
+      - image: hashicorp/terraform:light
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: Test
+          command: |
+            terraform init
+            terraform plan
   deploy:
     docker:
       - image: hashicorp/terraform:light
     steps:
-      - checkout
       - attach_workspace:
-          at: target
-      - run: terraform init
-      - run: terraform apply -auto-approve -var="version=1.0.${CIRCLE_BUILD_NUM}"
+          at: .
+      - run:
+          name: Deploy
+          command: |
+            terraform init
+            terraform apply -auto-approve
 
 workflows:
   version: 2
   apply:
     jobs:
       - build
-      - deploy:
+      - test:
           requires:
             - build
+      - deploy:
+          requires:
+            - test
