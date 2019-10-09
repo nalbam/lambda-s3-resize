@@ -1,6 +1,6 @@
 {
   "name": "lambda-s3-resize",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "scripts": {
     "build": "npm install -s"
