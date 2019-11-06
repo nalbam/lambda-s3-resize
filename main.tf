@@ -14,7 +14,7 @@ provider "aws" {
 }
 
 module "dev-lambda" {
-  source = "git::https://github.com/nalbam/terraform-aws-lambda-s3.git"
+  source = "github.com/nalbam/terraform-aws-lambda-s3?ref=v0.12.1"
   region = var.region
 
   name        = var.name
