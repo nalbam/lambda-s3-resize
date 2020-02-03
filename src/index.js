@@ -88,7 +88,7 @@ function putObject(params) {
             });
         });
     });
-    //console.log('putObject tasks : ', tasks);
+    console.log('putObject tasks : ', tasks);
     return Promise.all(tasks);
 }
 
@@ -164,7 +164,7 @@ function resize(params) {
             return p;
         }
     });
-    //console.log('resize tasks : ', tasks);
+    console.log('resize tasks : ', tasks);
     return Promise.all(tasks);
 }
 
@@ -198,7 +198,7 @@ function watermark(params) {
                 });
         });
     });
-    //console.log('watermark tasks : ', tasks);
+    console.log('watermark tasks : ', tasks);
     return Promise.all(tasks);
 }
 
