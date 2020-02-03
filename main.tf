@@ -23,7 +23,7 @@ module "dev-lambda" {
   runtime     = "nodejs10.x"
   handler     = "index.handler"
   memory_size = 2048
-  timeout     = 5
+  timeout     = 10
   s3_bucket   = var.s3_bucket
   s3_source   = "target/lambda.zip"
   s3_key      = "lambda/${var.name}/${var.name}-${var.build_no}.zip"
