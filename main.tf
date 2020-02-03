@@ -22,7 +22,7 @@ module "dev-lambda" {
   description = "s3 > lambda > resize"
   runtime     = "nodejs10.x"
   handler     = "index.handler"
-  memory_size = 512
+  memory_size = 2048
   timeout     = 5
   s3_bucket   = var.s3_bucket
   s3_source   = "target/lambda.zip"
