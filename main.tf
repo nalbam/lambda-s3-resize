@@ -20,7 +20,7 @@ module "dev-lambda" {
   name        = var.name
   stage       = var.stage
   description = "s3 > lambda > resize"
-  runtime     = "nodejs8.x"
+  runtime     = "nodejs8.10"
   handler     = "index.handler"
   memory_size = 2048
   timeout     = 10
