@@ -1,8 +1,8 @@
 'use strict';
 
 const aws = require('aws-sdk')
-    , s3 = new aws.S3({apiVersion: '2006-03-01'})
-    , gm = require('gm').subClass({imageMagick: true})
+    , s3 = new aws.S3({ apiVersion: '2006-03-01' })
+    , gm = require('gm').subClass({ imageMagick: true })
     , debug = true;
 
 if (!debug) {
@@ -16,15 +16,15 @@ const QUALITY = 95;
 
 const Options = {
     ARTICLE: [ // 가로 기준
-        {path: '1280', width: 1280, quality: QUALITY},
-        {path: '640', width: 640, quality: QUALITY},
-        {path: null} // width 또는 height 가 없으면 원본
+        { path: '1280', width: 1280, quality: QUALITY },
+        { path: '640', width: 640, quality: QUALITY },
+        { path: null } // width 또는 height 가 없으면 원본
     ],
     PROFILE: [ // 고정 크롭
-        {path: null, width: 140, height: 140, quality: QUALITY}
+        { path: null, width: 140, height: 140, quality: QUALITY }
     ],
     ORIGINAL: [
-        {path: null} // 원본
+        { path: null } // 원본
     ],
     get: function (key) {
         const type = key.split('/')[1];
