@@ -18,25 +18,25 @@ jobs:
             - .
       - store_artifacts:
           path: target/lambda.zip
-  test:
+  plan:
     docker:
       - image: hashicorp/terraform
     steps:
       - attach_workspace:
           at: .
       - run:
-          name: Test
+          name: Terraform Plan
           command: |
             terraform init
             terraform plan -var build_no=${CIRCLE_BUILD_NUM}
-  deploy:
+  apply:
     docker:
       - image: hashicorp/terraform
     steps:
       - attach_workspace:
           at: .
       - run:
-          name: Deploy
+          name: Terraform Apply
           command: |
             terraform init
             terraform apply -var build_no=${CIRCLE_BUILD_NUM} -auto-approve
@@ -46,9 +46,13 @@ workflows:
   apply:
     jobs:
       - build
-      - test:
+      - plan:
           requires:
             - build
-      - deploy:
+      # - approval:
+      #     type: approval
+      #     requires:
+      #       - plan
+      - apply:
           requires:
-            - test
+            - plan
