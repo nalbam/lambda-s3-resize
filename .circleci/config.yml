@@ -45,8 +45,14 @@ workflows:
   version: 2
   apply:
     jobs:
-      - build
+      - build:
+          filters:
+            branches:
+              only: master
       - plan:
+          filters:
+            branches:
+              only: master
           requires:
             - build
       # - approval:
@@ -54,5 +60,8 @@ workflows:
       #     requires:
       #       - plan
       - apply:
+          filters:
+            branches:
+              only: master
           requires:
             - plan
