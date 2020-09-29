@@ -9,6 +9,9 @@ terraform {
   required_version = ">= 0.12"
 }
 
+provider "null" {
+}
+
 provider "aws" {
   region = var.region
 }
@@ -19,7 +22,7 @@ module "dev-lambda" {
 
   name        = var.name
   stage       = var.stage
-  description = "s3 > lambda > resize : test 4"
+  description = "s3 > lambda > resize"
   runtime     = "nodejs8.10"
   handler     = "index.handler"
   memory_size = 2048
@@ -34,5 +37,11 @@ module "dev-lambda" {
 
   env_vars = {
     PROFILE = var.stage
+  }
+}
+
+resource "null_resource" "instance" {
+  provisioner "local-exec" {
+    command = "echo Hello atlantis"
   }
 }
